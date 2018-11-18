@@ -9,8 +9,4 @@ var (
 )
 
 func generate() {
-
-	for _, g := range generators {
-		g.update(symbols)
-	}
 }

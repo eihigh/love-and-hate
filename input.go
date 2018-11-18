@@ -43,6 +43,15 @@ func onRight() bool {
 	return onKeys(keys)
 }
 
+func onDecide() bool {
+	keys := []eb.Key{
+		eb.KeyEnter,
+		eb.KeyZ,
+		eb.KeySpace,
+	}
+	return onKeys(keys)
+}
+
 func onQuit() bool {
 	keys := []eb.Key{eb.KeyQ}
 	return onKeys(keys)

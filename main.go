@@ -4,13 +4,13 @@ import (
 	"errors"
 	"log"
 
-	ko "github.com/ei1chi/koromo"
+	ko "github.com/eihigh/koromo"
 	eb "github.com/hajimehoshi/ebiten"
 )
 
 var (
-	love, hate, player *eb.Image
-	x, y               float64
+	love, hate, chara *eb.Image
+	x, y              float64
 
 	errSuccess = errors.New("")
 )
@@ -18,7 +18,7 @@ var (
 func init() {
 	love, _ = ko.LoadImage("i/img/love.png")
 	hate, _ = ko.LoadImage("i/img/hate.png")
-	player, _ = ko.LoadImage("i/img/player.png")
+	chara, _ = ko.LoadImage("i/img/player.png")
 }
 
 func main() {
