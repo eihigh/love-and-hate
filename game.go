@@ -4,7 +4,6 @@ import (
 	"image/color"
 
 	ko "github.com/eihigh/koromo"
-	"github.com/hajimehoshi/bitmapfont"
 	eb "github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/text"
 	"github.com/mattn/go-runewidth"
@@ -95,7 +94,7 @@ func updateTitle() {
 	for _, d := range data {
 		l := runewidth.StringWidth(d.t)
 		x := 166 - l*6/2
-		text.Draw(scr, d.t, bitmapfont.Gothic12r, x, d.y, color.White)
+		text.Draw(scr, d.t, fface, x, d.y, color.White)
 	}
 }
 
@@ -103,7 +102,7 @@ func updatePlay() {
 	op := &eb.DrawImageOptions{}
 	a := 0.8 * ko.UWave(scene.ElapsedRatio(60), 0.25)
 	op.ColorM.Scale(1.0, 1.0, a, 1.0)
-	scr.DrawImage(chara, op)
+	scr.DrawImage(images["player"], op)
 
 	if onLeft() {
 		x -= 2

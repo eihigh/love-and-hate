@@ -1,29 +1,48 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"log"
+	"math/rand"
+	"time"
 
-	ko "github.com/eihigh/koromo"
-	eb "github.com/hajimehoshi/ebiten"
+	"github.com/eihigh/sio"
+	"github.com/hajimehoshi/bitmapfont"
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 var (
-	love, hate, chara *eb.Image
-	x, y              float64
-
-	errSuccess = errors.New("")
+	x, y    float64
+	images  map[string]*ebiten.Image
+	display *sio.Rect
+	fface   = bitmapfont.Gothic12r
 )
 
 func init() {
-	love, _ = ko.LoadImage("i/img/love.png")
-	hate, _ = ko.LoadImage("i/img/hate.png")
-	chara, _ = ko.LoadImage("i/img/player.png")
+	rand.Seed(time.Now().UnixNano())
+
+	display = sio.NewRect(7, 0, 0, 320, 240)
+
+	// load resouces
+	names := []string{
+		"love",
+		"hate",
+		"player",
+	}
+	for _, name := range names {
+		i, _, err := ebitenutil.NewImageFromFile(fmt.Sprintf("i/img/%s.png", name), ebiten.FilterDefault)
+		if err != nil {
+			log.Fatal(err)
+		}
+		images[name] = i
+	}
 }
 
 func main() {
-	err := eb.Run(update, 320, 240, 2, "aaaaaa")
-	if err != nil {
+	w, h := display.Width(), display.Height()
+	err := ebiten.Run(update, int(w), int(h), 2, "aaaaaa")
+	if err != nil && err != sio.ErrSuccess {
 		log.Fatal(err)
 	}
 }
