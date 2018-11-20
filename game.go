@@ -3,17 +3,18 @@ package main
 import (
 	"image/color"
 
-	ko "github.com/eihigh/koromo"
-	eb "github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/text"
-	"github.com/mattn/go-runewidth"
+	"github.com/eihigh/sio"
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 var (
-	scr *eb.Image
+	scr *ebiten.Image
 
-	scene  ko.Stm
-	action string
+	game struct {
+		state  sio.Stm
+		action string
+	}
 )
 
 type gameScene = int
@@ -31,31 +32,23 @@ const (
 	actionNewGame
 )
 
-func update(s *eb.Image) error {
+func update(s *ebiten.Image) error {
 
 	scr = s
 
 	if onQuit() {
-		return ko.ErrSuccess
+		return sio.ErrSuccess
 	}
 
-	action = ""
-	scene.Update()
-	switch scene.Current() {
+	game.action = ""
+	game.state.Update()
+	switch game.state.Current() {
 
 	case title:
 		updateTitle()
 
-		if action == "new game" {
-			scene.To(play)
-		}
-
 	case play:
 		updatePlay()
-
-		if action == "back to title" {
-			scene.To(title)
-		}
 
 	case gameOver:
 
@@ -65,60 +58,42 @@ func update(s *eb.Image) error {
 }
 
 func updateTitle() {
-	if onDecide() {
-		action = "new game"
-	}
 
-	data := []struct {
-		t string
-		y int
-	}{
-		{
-			t: "裏切られるのは一瞬だった。",
-			y: 80,
-		},
-		{
-			t: "だから、僕はその恨みを晴らす権利がある。",
-			y: 96,
-		},
-		{
-			t: "STAGE 0",
-			y: 140,
-		},
-		{
-			t: "MISSION -- LOVE < 35",
-			y: 156,
-		},
-	}
+	text := "引き裂くのはたやすかった。\nその勇気はなかった。矛先は自分に向いた"
+	tb := sio.NewTextBox(8, text)
+	tb.Rect = display.Clone(2, 2).Resize(0, -5*tb.EmHeight)
+	bd(tb.Rect)
+	drawText(scr, tb, color.White)
 
-	for _, d := range data {
-		l := runewidth.StringWidth(d.t)
-		x := 166 - l*6/2
-		text.Draw(scr, d.t, fface, x, d.y, color.White)
-	}
+	text = "STAGE 1"
+	tb = sio.NewTextBox(5, text)
+	tb.Rect = display.Clone(5, 5)
+	bd(tb.Rect)
+	drawText(scr, tb, color.White)
+
+	r := display.Clone(5, 8).Scale(1, 0.25)
+
+	text = "MISSION -- "
+	tb = sio.NewTextBox(6, text)
+	tb.Rect = r.Clone(4, 4).Scale(0.5, 1)
+	bd(tb.Rect)
+	drawText(scr, tb, color.White)
+
+	text = "LOVES < 5\nHATES > 50"
+	tb = sio.NewTextBox(4, text)
+	tb.Rect = r.Clone(6, 6).Scale(0.5, 1)
+	bd(tb.Rect)
+	drawText(scr, tb, color.White)
 }
 
 func updatePlay() {
-	op := &eb.DrawImageOptions{}
-	a := 0.8 * ko.UWave(scene.ElapsedRatio(60), 0.25)
-	op.ColorM.Scale(1.0, 1.0, a, 1.0)
-	scr.DrawImage(images["player"], op)
+}
 
-	if onLeft() {
-		x -= 2
-	}
-	if onRight() {
-		x += 2
-	}
-	if onUp() {
-		y -= 2
-	}
-	if onDown() {
-		y += 2
-	}
-	generate()
-
-	if onDecide() {
-		action = "back to title"
-	}
+func bd(r *sio.Rect) {
+	x, y := r.Pos(7)
+	w, h := r.Width(), r.Height()
+	ebitenutil.DrawLine(scr, x, y, x+w, y, color.White)
+	ebitenutil.DrawLine(scr, x+w, y, x+w, y+h, color.White)
+	ebitenutil.DrawLine(scr, x+w, y+h, x, y+h, color.White)
+	ebitenutil.DrawLine(scr, x, y+h, x, y, color.White)
 }

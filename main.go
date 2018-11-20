@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	x, y    float64
-	images  map[string]*ebiten.Image
+	images  = map[string]*ebiten.Image{}
 	display *sio.Rect
 	fface   = bitmapfont.Gothic12r
 )
