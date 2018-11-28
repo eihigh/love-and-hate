@@ -14,7 +14,7 @@ const (
 	EffectCross
 )
 
-type Effect struct {
+type EffectBase struct {
 	Type   EffectType
 	Color  color.Color
 	Pos    complex128
@@ -22,9 +22,9 @@ type Effect struct {
 	IsDead bool
 }
 
-func (e *Effect) Base() *Effect { return e }
+func (e *EffectBase) Base() *EffectBase { return e }
 
-func (e *Effect) UpdateBase(pos complex128) {
+func (e *EffectBase) UpdateEffect(pos complex128) {
 	e.Pos = pos
 	e.State.Update()
 }

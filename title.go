@@ -1,6 +1,9 @@
 package main
 
-import "github.com/eihigh/sio"
+import (
+	"github.com/eihigh/love-and-hate/internal/input"
+	"github.com/eihigh/sio"
+)
 
 type title struct {
 	state  sio.Stm
@@ -17,7 +20,7 @@ func (t *title) update() action {
 	t.state.Update()
 
 	// scan
-	if onUp() {
+	if input.OnUp() {
 		return gameShowGameOver
 	}
 

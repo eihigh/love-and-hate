@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"log"
 
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
@@ -14,7 +15,7 @@ var (
 
 type game struct {
 	state sio.Stm
-	title title
+	title *title
 	stage *stage
 }
 
@@ -31,27 +32,37 @@ func (g *game) update(screen *ebiten.Image) error {
 	}
 	scr = screen
 
-	// update process
-	var a action
 	switch g.state.Get() {
 	case sceneTitle:
-		a = g.title.update()
-	case sceneStage:
-		a = g.stage.update()
-	}
+		g.updateTitle()
 
-	// scan process
-	switch a {
-	case gameShowTitle:
-		g.title.init()
-		g.state.To(sceneTitle)
-	case gameShowStage:
-		g.stage = newStage(g.title.level)
-		g.state.To(sceneStage)
+	case sceneStage:
+		g.updateStage()
 	}
 
 	g.state.Update()
 	return nil
+}
+
+func (g *game) updateTitle() {
+	a := g.title.update()
+
+	switch a {
+	case gameShowTitle:
+		log.Fatal("ohoo")
+	}
+}
+
+func (g *game) updateStage() {
+	a := g.stage.update()
+
+	// 各種遷移処理をここで決定する
+	switch a {
+	case gameShowTitle:
+		g.stage = nil // 破棄
+		g.title.init()
+		g.state.To(sceneTitle)
+	}
 }
 
 func bd(r *sio.Rect) {

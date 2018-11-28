@@ -13,7 +13,7 @@ var (
 	fface = bitmapfont.Gothic12r
 )
 
-func drawText(dst *ebiten.Image, tb *sio.TextBox, clr color.Color) {
+func DrawText(dst *ebiten.Image, tb *sio.TextBox, clr color.Color) {
 	ofsX := tb.EmWidth / 2 // dot position
 	ofsY := tb.EmHeight    // ditto
 	lines := tb.Lines()
