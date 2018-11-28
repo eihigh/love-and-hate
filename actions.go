@@ -15,4 +15,5 @@ const (
 
 	// in stage actions
 	stagePause
+	stageReset
 )

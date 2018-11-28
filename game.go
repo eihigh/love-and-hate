@@ -1,12 +1,11 @@
 package main
 
 import (
-	"image/color"
 	"log"
 
+	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 var (
@@ -14,21 +13,32 @@ var (
 )
 
 type game struct {
-	state sio.Stm
+	state sio.State
+
+	// 以下scene変数は同時に存在する可能性がある
 	title *title
 	stage *stage
 }
 
 const (
-	sceneOpening int = iota
-	sceneTitle
+	sceneTitle int = iota
 	sceneStage
 	sceneResult
 )
 
+func newGame() *game {
+	return &game{
+		title: newTitle(),
+		stage: nil,
+	}
+}
+
 func (g *game) update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() {
 		return nil
+	}
+	if input.OnQuit() {
+		return sio.ErrSuccess
 	}
 	scr = screen
 
@@ -49,7 +59,7 @@ func (g *game) updateTitle() {
 
 	switch a {
 	case gameShowTitle:
-		log.Fatal("ohoo")
+		log.Fatal("invalid action: title -> gameShowTitle")
 	}
 }
 
@@ -60,16 +70,7 @@ func (g *game) updateStage() {
 	switch a {
 	case gameShowTitle:
 		g.stage = nil // 破棄
-		g.title.init()
+		g.title.reuse()
 		g.state.To(sceneTitle)
 	}
-}
-
-func bd(r *sio.Rect) {
-	x, y := r.Pos(7)
-	w, h := r.Width(), r.Height()
-	ebitenutil.DrawLine(scr, x, y, x+w, y, color.White)
-	ebitenutil.DrawLine(scr, x+w, y, x+w, y+h, color.White)
-	ebitenutil.DrawLine(scr, x+w, y+h, x, y+h, color.White)
-	ebitenutil.DrawLine(scr, x, y+h, x, y, color.White)
 }

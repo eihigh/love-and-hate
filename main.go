@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"io"
 	"log"
 	"math/rand"
@@ -9,10 +10,11 @@ import (
 
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 const (
-	titleName = "prototype"
+	titleName = "love and hate"
 )
 
 var (
@@ -35,12 +37,20 @@ func main() {
 		log.Println("logging start")
 	}
 
-	g := &game{}
-	g.state.To(sceneOpening)
+	g := newGame()
 
 	w, h := view.Width(), view.Height()
 	err := ebiten.Run(g.update, int(w), int(h), 2, titleName)
 	if err != nil && err != sio.ErrSuccess {
 		log.Fatal(err)
 	}
+}
+
+func bd(r *sio.Rect) {
+	x, y := r.Pos(7)
+	w, h := r.Width(), r.Height()
+	ebitenutil.DrawLine(scr, x, y, x+w, y, color.White)
+	ebitenutil.DrawLine(scr, x+w, y, x+w, y+h, color.White)
+	ebitenutil.DrawLine(scr, x+w, y+h, x, y+h, color.White)
+	ebitenutil.DrawLine(scr, x, y+h, x, y, color.White)
 }
