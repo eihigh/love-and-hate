@@ -22,14 +22,9 @@ type Effect struct {
 	IsDead bool
 }
 
-func NewEffect(typ EffectType, clr color.Color) Effect {
-	return Effect{
-		Type:  typ,
-		Color: clr,
-	}
-}
+func (e *Effect) Base() *Effect { return e }
 
-func (e *Effect) Update(pos complex128) {
+func (e *Effect) UpdateBase(pos complex128) {
 	e.Pos = pos
 	e.State.Update()
 }

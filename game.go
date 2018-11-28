@@ -10,83 +10,48 @@ import (
 
 var (
 	scr *ebiten.Image
-
-	game struct {
-		state  sio.Stm
-		action string
-	}
 )
 
-type gameScene = int
+type game struct {
+	state sio.Stm
+	title title
+}
 
 const (
-	title gameScene = iota
-	play
-	gameOver
+	sceneOpening int = iota
+	sceneTitle
+	sceneStage
+	sceneResult
 )
 
-type gameAction = int
+func newGame() *game {
+	g := &game{}
+	g.state.To(sceneStage)
+	return g
+}
 
-const (
-	actionToTitle = iota
-	actionNewGame
-)
+func (g *game) update(screen *ebiten.Image) error {
+	if ebiten.IsDrawingSkipped() {
+		return nil
+	}
+	scr = screen
 
-func update(s *ebiten.Image) error {
-
-	scr = s
-
-	if onQuit() {
-		return sio.ErrSuccess
+	// update process
+	g.state.Update()
+	var a action
+	switch g.state.Current() {
+	case sceneTitle:
+		a = g.title.update()
 	}
 
-	game.action = ""
-	game.state.Update()
-	switch game.state.Current() {
-
-	case title:
-		updateTitle()
-
-	case play:
-		updatePlay()
-
-	case gameOver:
-
+	// scan process
+	switch a {
+	case gameShowTitle:
+		g.title.init()
+		g.state.To(sceneTitle)
 	}
 
 	return nil
-}
-
-func updateTitle() {
-
-	text := "引き裂くのはたやすかった。\nその勇気はなかった。矛先は自分に向いた"
-	tb := sio.NewTextBox(8, text)
-	tb.Rect = display.Clone(2, 2).Resize(0, -5*tb.EmHeight)
-	bd(tb.Rect)
-	drawText(scr, tb, color.White)
-
-	text = "STAGE 1"
-	tb = sio.NewTextBox(5, text)
-	tb.Rect = display.Clone(5, 5)
-	bd(tb.Rect)
-	drawText(scr, tb, color.White)
-
-	r := display.Clone(5, 8).Scale(1, 0.25)
-
-	text = "MISSION -- "
-	tb = sio.NewTextBox(6, text)
-	tb.Rect = r.Clone(4, 4).Scale(0.5, 1)
-	bd(tb.Rect)
-	drawText(scr, tb, color.White)
-
-	text = "LOVES < 5\nHATES > 50"
-	tb = sio.NewTextBox(4, text)
-	tb.Rect = r.Clone(6, 6).Scale(0.5, 1)
-	bd(tb.Rect)
-	drawText(scr, tb, color.White)
-}
-
-func updatePlay() {
 }
 
 func bd(r *sio.Rect) {

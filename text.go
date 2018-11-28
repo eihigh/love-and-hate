@@ -4,8 +4,13 @@ import (
 	"image/color"
 
 	"github.com/eihigh/sio"
+	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/text"
+)
+
+var (
+	fface = bitmapfont.Gothic12r
 )
 
 func drawText(dst *ebiten.Image, tb *sio.TextBox, clr color.Color) {

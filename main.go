@@ -1,46 +1,44 @@
 package main
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/eihigh/sio"
-	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+)
+
+const (
+	titleName = "prototype"
 )
 
 var (
-	images  = map[string]*ebiten.Image{}
-	display *sio.Rect
-	fface   = bitmapfont.Gothic12r
+	view = sio.NewRect(7, 0, 0, 320, 240)
+
+	debugMode = true
 )
 
-func init() {
+func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	display = sio.NewRect(7, 0, 0, 320, 240)
-
-	// load resouces
-	names := []string{
-		"love",
-		"hate",
-		"player",
-	}
-	for _, name := range names {
-		i, _, err := ebitenutil.NewImageFromFile(fmt.Sprintf("i/img/%s.png", name), ebiten.FilterDefault)
+	if debugMode {
+		logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
-			log.Fatal(err)
+			panic("cannot open test.log: " + err.Error())
 		}
-		images[name] = i
+		defer logfile.Close()
+		log.SetOutput(io.MultiWriter(logfile, os.Stdout))
+		log.SetFlags(log.Ldate | log.Ltime)
+		log.Println("logging start")
 	}
-}
 
-func main() {
-	w, h := display.Width(), display.Height()
-	err := ebiten.Run(update, int(w), int(h), 2, "aaaaaa")
+	g := newGame()
+
+	w, h := view.Width(), view.Height()
+	err := ebiten.Run(g.update, int(w), int(h), 2, titleName)
 	if err != nil && err != sio.ErrSuccess {
 		log.Fatal(err)
 	}
