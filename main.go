@@ -35,7 +35,8 @@ func main() {
 		log.Println("logging start")
 	}
 
-	g := newGame()
+	g := &game{}
+	g.state.To(sceneOpening)
 
 	w, h := view.Width(), view.Height()
 	err := ebiten.Run(g.update, int(w), int(h), 2, titleName)

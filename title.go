@@ -14,5 +14,11 @@ func (t *title) init() {
 
 func (t *title) update() action {
 	t.state.Update()
+
+	// scan
+	if onUp() {
+		return gameShowGameOver
+	}
+
 	return noAction
 }

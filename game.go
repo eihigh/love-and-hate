@@ -24,12 +24,6 @@ const (
 	sceneResult
 )
 
-func newGame() *game {
-	g := &game{}
-	g.state.To(sceneStage)
-	return g
-}
-
 func (g *game) update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() {
 		return nil
@@ -37,9 +31,8 @@ func (g *game) update(screen *ebiten.Image) error {
 	scr = screen
 
 	// update process
-	g.state.Update()
 	var a action
-	switch g.state.Current() {
+	switch g.state.Get() {
 	case sceneTitle:
 		a = g.title.update()
 	}
@@ -51,6 +44,7 @@ func (g *game) update(screen *ebiten.Image) error {
 		g.state.To(sceneTitle)
 	}
 
+	g.state.Update()
 	return nil
 }
 

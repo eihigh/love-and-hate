@@ -35,7 +35,7 @@ type RippleEffect struct {
 }
 
 func (e *RippleEffect) Info() (EffectType, color.Color, int) {
-	return EffectRipple, e.clr, e.state.Elapsed()
+	return EffectRipple, e.clr, e.state.Count()
 }
 
 func (e *RippleEffect) Update() {
