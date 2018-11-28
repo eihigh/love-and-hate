@@ -15,6 +15,7 @@ var (
 type game struct {
 	state sio.Stm
 	title title
+	stage *stage
 }
 
 const (
@@ -35,6 +36,8 @@ func (g *game) update(screen *ebiten.Image) error {
 	switch g.state.Get() {
 	case sceneTitle:
 		a = g.title.update()
+	case sceneStage:
+		a = g.stage.update()
 	}
 
 	// scan process
@@ -42,6 +45,9 @@ func (g *game) update(screen *ebiten.Image) error {
 	case gameShowTitle:
 		g.title.init()
 		g.state.To(sceneTitle)
+	case gameShowStage:
+		g.stage = newStage(g.title.level)
+		g.state.To(sceneStage)
 	}
 
 	g.state.Update()

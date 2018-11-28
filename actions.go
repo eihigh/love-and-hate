@@ -11,6 +11,7 @@ const (
 	gameNewGame
 	gameShowTitle
 	gameShowGameOver
+	gameShowStage
 
 	// in stage actions
 	stagePause

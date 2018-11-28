@@ -5,6 +5,7 @@ import "github.com/eihigh/sio"
 type title struct {
 	state  sio.Stm
 	cursor int
+	level  int
 }
 
 func (t *title) init() {

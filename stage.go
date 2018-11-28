@@ -1,48 +1,16 @@
 package main
 
-import ko "github.com/eihigh/koromo"
+import "github.com/eihigh/sio"
 
-var (
-	player struct {
-		pos   complex128
-		loves int
-		hates int
-	}
-
-	stage struct {
-		target int
-		state  ko.Stm
-	}
-
-	symbols []symbol
-)
-
-type symbol interface {
-	isLove() bool
-	pos() (float64, float64)
-	update()
+// stageはステージ突入ごとに必ず作り直し
+type stage struct {
+	state sio.Stm
 }
 
-type stageState = int
+func newStage(level int) *stage {
+	return &stage{}
+}
 
-const (
-	beginStage stageState = iota
-	playStage
-	resultStage
-)
-
-func updateStage() {
-
-	switch stage.state.Current() {
-	case beginStage:
-	case playStage:
-	case resultStage:
-
-	}
-
-	for _, sym := range symbols {
-		sym.update()
-	}
-
-	// ここで当たり判定
+func (s *stage) update() action {
+	return noAction
 }
