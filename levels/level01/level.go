@@ -21,5 +21,7 @@ func New() *Level {
 }
 
 // Update は各オブジェクトを追加するのみで更新はしない
-func (l *Level) Update(scr *ebiten.Image, objs *objects.Objects) {
+func (l *Level) Update(objs *objects.Objects) {
 }
+
+func (l *Level) Draw(scr *ebiten.Image) {}

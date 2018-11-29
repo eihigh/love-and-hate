@@ -13,7 +13,8 @@ import (
 )
 
 type level interface {
-	Update(scr *ebiten.Image, objs *objects.Objects)
+	Update(objs *objects.Objects)
+	Draw(scr *ebiten.Image)
 }
 
 var (
@@ -27,12 +28,20 @@ type stage struct {
 	state sio.Stm
 	objs  *objects.Objects
 	level level
+
+	tl sio.Timeline
 }
 
 func newStage(level int) *stage {
+	tl := sio.Timeline{}
+	tl.Append("stage title", 50)
+	tl.Append("player fadein", 20)
+	tl.Append("play", -1)
+
 	return &stage{
 		objs:  objects.NewObjects(),
 		level: levelMakers[level](),
+		tl:    tl,
 	}
 }
 
@@ -44,10 +53,18 @@ func (s *stage) update() action {
 		ebitenutil.DebugPrint(scr, dmsg)
 	}
 
+	switch s.tl.Current() {
+	case "stage title":
+	case "player fadein":
+	case "play":
+	}
+
+	s.tl.Update()
+
 	s.movePlayer()
 
 	// call level-specific process
-	s.level.Update(scr, o)
+	s.level.Update(o)
 
 	// update symbols
 	for _, sym := range o.Symbols {
@@ -57,8 +74,10 @@ func (s *stage) update() action {
 	// collision check
 	s.collision()
 
-	// draw all
-	s.draw()
+	s.level.Draw(scr)
+
+	// draw UIs
+	s.drawUI()
 
 	s.state.Update()
 	return noAction
@@ -106,7 +125,7 @@ func (s *stage) movePlayer() {
 func (s *stage) collision() {
 }
 
-func (s *stage) draw() {
+func (s *stage) drawUI() {
 
 	o := s.objs
 	op := &ebiten.DrawImageOptions{}
