@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/eihigh/love-and-hate/internal/input"
+	"github.com/eihigh/love-and-hate/internal/sprites"
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
 )
@@ -27,6 +28,8 @@ const (
 )
 
 func newGame() *game {
+	sprites.Load()
+
 	return &game{
 		title: newTitle(),
 		stage: nil,
@@ -60,6 +63,9 @@ func (g *game) updateTitle() {
 	switch a {
 	case gameShowTitle:
 		log.Fatal("invalid action: title -> gameShowTitle")
+	case gameShowStage:
+		g.stage = newStage(1)
+		g.state.To(sceneStage)
 	}
 }
 
