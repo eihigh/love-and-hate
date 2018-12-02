@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	red   = color.RGBA{255, 0, 0, 255}
 	green = color.RGBA{0, 255, 0, 255}
 )
 
@@ -46,12 +47,12 @@ func newStage2() *stage2 {
 	}
 
 	s.phase = phase{
-		minLoves:  20,
+		minLoves:  40,
 		maxLoves:  100,
 		minHates:  0,
 		maxHates:  10,
 		showLoves: 100,
-		showHates: 100,
+		showHates: 20,
 	}
 
 	// TODO: add mirror method into rect
@@ -64,8 +65,8 @@ func newStage2() *stage2 {
 	h := 16.0
 	x, y := view.Pos(7)
 	s.r.loveBar = sio.NewRect(7, x, y, w, h)
-	s.r.hateBar = s.r.loveBar.Clone(9, 9).Move(view.Pos(9)).Drive(6).Scale(1, 0.3)
-	s.r.loveBar.Drive(4).Scale(1, 0.3)
+	s.r.hateBar = s.r.loveBar.Clone(9, 9).Move(view.Pos(9)).Drive(6)
+	s.r.loveBar.Drive(4)
 	return s
 }
 
@@ -73,6 +74,7 @@ func (s *stage2) update() action {
 
 	o := s.objs
 	s.spawn.Update()
+	s.state.Update()
 
 	if debugMode {
 		// 		pl := o.Player
@@ -83,6 +85,7 @@ func (s *stage2) update() action {
 	// ここからレベル特有の処理
 	if s.spawn.HasCounted(7) {
 		o.Symbols = append(o.Symbols, newUp())
+		o.Symbols = append(o.Symbols, newUp2())
 		s.spawn.Reset()
 	}
 	// ここまでレベル特有の処理
@@ -119,34 +122,38 @@ func (s *stage2) draw() {
 	// UIs
 	bar := s.r.loveBar
 	show := float64(s.phase.showLoves)
-	ratio := float64(o.Player.Loves) / show
-	ax, ay := bar.Pos(9)
-	bx, by := ax-bar.W*ratio, ay
-	ebitenutil.DrawLine(scr, ax, ay, bx, by, color.White)
 
 	min := float64(s.phase.minLoves) / show
-	max := float64(s.phase.maxLoves) / show
-	ax, ay = bar.Pos(3)
-	bx, by = ax-bar.W*max, ay
-	ax -= bar.W * min
-	ebitenutil.DrawLine(scr, ax, ay, bx, by, green)
+	ax, ay := bar.Pos(6)
+	bx, by := ax-bar.W*min, ay
+	ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
+
+	ratio := float64(o.Player.Loves) / show
+	ax, ay = bar.Pos(6)
+	bx, by = ax-bar.W*ratio, ay
+	ebitenutil.DrawLine(scr, ax, ay, bx, by, color.White)
 
 	bar = s.r.hateBar
 	show = float64(s.phase.showHates)
-	ratio = float64(o.Player.Hates) / show
-	ax, ay = bar.Pos(7)
-	bx, by = ax+bar.W*ratio, ay
+
+	max := float64(s.phase.maxHates) / show
+	ax, ay = bar.Pos(4)
+	bx, by = ax+bar.W*max, ay
 	ebitenutil.DrawLine(scr, ax, ay, bx, by, color.White)
 
-	min = float64(s.phase.minHates) / show
-	max = float64(s.phase.maxHates) / show
-	ax, ay = bar.Pos(1)
-	bx, by = ax+bar.W*max, ay
-	ax += bar.W * min
-	ebitenutil.DrawLine(scr, ax, ay, bx, by, green)
+	ratio = float64(o.Player.Hates) / show
+	ax, ay = bar.Pos(4)
+	bx, by = ax+bar.W*ratio, ay
+	ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
 
-	sprites.LoveSprite.Draw(dg, draw.Shift(s.r.love.Pos(5)))
+	alpha := 1.0
+	if s.phase.minLoves > o.Player.Loves {
+		alpha = 1 - 0.5*sio.UWave(s.state.RatioTo(40))
+	}
+	sprites.LoveSprite.Draw(dg, draw.Shift(s.r.love.Pos(5)), draw.Paint(1, 1, 1, alpha))
 	sprites.HateSprite.Draw(dg, draw.Shift(s.r.hate.Pos(5)))
+	bd(s.r.love)
+	bd(s.r.hate)
 }
 
 // ------------------------------------------------------------
@@ -171,6 +178,28 @@ func (u *up) Alpha() float64 {
 }
 
 func (u *up) Update() {
+	u.state.Update()
+	u.Pos += complex(0, -1)
+}
+
+type up2 struct {
+	objects.SymbolBase
+	vec   complex128
+	state sio.Stm
+}
+
+func newUp2() *up2 {
+	u := &up2{}
+	u.Pos = complex(100, 200)
+	u.IsLove = false
+	return u
+}
+
+func (u *up2) Alpha() float64 {
+	return u.state.RatioTo(10)
+}
+
+func (u *up2) Update() {
 	u.state.Update()
 	u.Pos += complex(0, -1)
 }

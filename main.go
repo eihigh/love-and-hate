@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -21,6 +22,8 @@ var (
 	view = sio.NewRect(7, 0, 0, 320, 240)
 
 	debugMode = true
+
+	g *game
 )
 
 func main() {
@@ -37,12 +40,20 @@ func main() {
 		log.Println("logging start")
 	}
 
-	g := newGame()
+	g = newGame()
 
-	err := ebiten.Run(g.update, int(view.W), int(view.H), 2, titleName)
+	err := ebiten.Run(update, int(view.W), int(view.H), 2, titleName)
 	if err != nil && err != sio.ErrSuccess {
 		log.Fatal(err)
 	}
+}
+
+func update(screen *ebiten.Image) error {
+	if input.OnReset() {
+		g = newGame()
+		return nil
+	}
+	return g.update(screen)
 }
 
 func bd(r *sio.Rect) {

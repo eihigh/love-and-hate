@@ -56,3 +56,8 @@ func OnQuit() bool {
 	keys := []ebiten.Key{ebiten.KeyQ}
 	return OnKeys(keys)
 }
+
+func OnReset() bool {
+	keys := []ebiten.Key{ebiten.KeyEscape}
+	return OnKeys(keys)
+}
