@@ -39,8 +39,7 @@ func main() {
 
 	g := newGame()
 
-	w, h := view.Width(), view.Height()
-	err := ebiten.Run(g.update, int(w), int(h), 2, titleName)
+	err := ebiten.Run(g.update, int(view.W), int(view.H), 2, titleName)
 	if err != nil && err != sio.ErrSuccess {
 		log.Fatal(err)
 	}
@@ -48,7 +47,7 @@ func main() {
 
 func bd(r *sio.Rect) {
 	x, y := r.Pos(7)
-	w, h := r.Width(), r.Height()
+	w, h := r.W, r.H
 	ebitenutil.DrawLine(scr, x, y, x+w, y, color.White)
 	ebitenutil.DrawLine(scr, x+w, y, x+w, y+h, color.White)
 	ebitenutil.DrawLine(scr, x+w, y+h, x, y+h, color.White)

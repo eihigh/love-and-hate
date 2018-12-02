@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/love-and-hate/internal/objects"
 	"github.com/eihigh/love-and-hate/internal/sprites"
@@ -13,8 +14,7 @@ import (
 )
 
 type level interface {
-	Update(objs *objects.Objects)
-	Draw(scr *ebiten.Image)
+	Update(screen *ebiten.Image, objs *objects.Objects)
 }
 
 var (
@@ -64,20 +64,9 @@ func (s *stage) update() action {
 	s.movePlayer()
 
 	// call level-specific process
-	s.level.Update(o)
+	s.level.Update(scr, o)
 
-	// update symbols
-	for _, sym := range o.Symbols {
-		sym.Update()
-	}
-
-	// collision check
-	s.collision()
-
-	s.level.Draw(scr)
-
-	// draw UIs
-	s.drawUI()
+	s.draw()
 
 	s.state.Update()
 	return noAction
@@ -123,23 +112,61 @@ func (s *stage) movePlayer() {
 }
 
 func (s *stage) collision() {
-}
-
-func (s *stage) drawUI() {
 
 	o := s.objs
-	op := &ebiten.DrawImageOptions{}
 
-	reop(op)
-	spr := sprites.Sprites["player"]
-	spr.Bring(op, o.Player.Pos)
+	p := o.Player.Pos
+	living := 0
 
-	clr := 0.8 * sio.UWave(s.state.RatioTo(20))
-	op.ColorM.Scale(1, 1, 1-clr, 1)
-	scr.DrawImage(spr.Image, op)
+	for _, sym := range o.Symbols {
+		alpha := sym.Alpha()
+		if alpha < 0.99 {
+			continue // skip disabled symbol
+		}
+
+		b := sym.Base()
+		diff := sio.AbsSq(b.Pos - p)
+
+		if diff < 8*8 {
+			if b.IsLove {
+				o.Player.Loves++
+			} else {
+				o.Player.Hates++
+			}
+			b.IsDead = true
+		}
+
+		if !view.Contains(b.Pos) {
+			b.IsDead = true
+		}
+
+		if !b.IsDead {
+			living++
+		}
+	}
+
+	// clean dead objects
+	next := make([]objects.Symbol, 0, living)
+	for _, sym := range o.Symbols {
+		if !sym.Base().IsDead {
+			next = append(next, sym)
+		}
+	}
 }
 
-func reop(op *ebiten.DrawImageOptions) {
-	op.GeoM.Reset()
-	op.ColorM.Reset()
+func (s *stage) draw() {
+
+	o := s.objs
+	dg := &draw.Group{Dst: scr}
+
+	spr := sprites.Sprites["player"]
+	clr := 0.8 * sio.UWave(s.state.RatioTo(20))
+	spr.Draw(dg,
+		draw.Shift(c2f(o.Player.Pos)),
+		draw.Paint(1, 1, 1-clr, 1),
+	)
+}
+
+func c2f(c complex128) (float64, float64) {
+	return real(c), imag(c)
 }

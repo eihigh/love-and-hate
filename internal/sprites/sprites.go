@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
@@ -52,4 +53,17 @@ func NewSprite(i *ebiten.Image) *Sprite {
 func (s *Sprite) Bring(op *ebiten.DrawImageOptions, pos complex128) {
 	op.GeoM.Translate(s.Rect.Pos(7))
 	op.GeoM.Translate(real(pos), imag(pos))
+}
+
+func (s *Sprite) Draw(dg *draw.Group, fns ...draw.OptionFn) {
+	x, y := s.Rect.Pos(7)
+	fns = append([]draw.OptionFn{draw.Shift(x, y)}, fns...)
+	dg.Draw(s.Image, fns...)
+}
+
+func Symbol(isLove bool) *Sprite {
+	if isLove {
+		return Sprites["love"]
+	}
+	return Sprites["hate"]
 }
