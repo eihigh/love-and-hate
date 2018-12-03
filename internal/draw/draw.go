@@ -1,8 +1,16 @@
 package draw
 
-import "github.com/hajimehoshi/ebiten"
+import (
+	"image/color"
 
-var op = &ebiten.DrawImageOptions{}
+	"github.com/eihigh/sio"
+	"github.com/hajimehoshi/ebiten"
+)
+
+var (
+	op  = &ebiten.DrawImageOptions{}
+	nop = &ebiten.DrawImageOptions{}
+)
 
 type Group struct {
 	Dst *ebiten.Image
@@ -23,6 +31,15 @@ func (g *Group) Draw(src *ebiten.Image, fns ...OptionFn) {
 	op.ColorM = g.colorM
 	op.CompositeMode = g.Mode
 	g.Dst.DrawImage(src, op)
+}
+
+func (g *Group) DrawRect(r *sio.Rect, clr color.Color) {
+	i, _ := ebiten.NewImage(int(r.W), int(r.H), ebiten.FilterDefault)
+	i.Fill(clr)
+	x, y := r.Pos(7)
+	nop.GeoM.Translate(x, y)
+	g.Dst.DrawImage(i, nop)
+	nop.GeoM.Reset()
 }
 
 type OptionFn func(*Group)

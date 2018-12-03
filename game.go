@@ -18,7 +18,7 @@ type game struct {
 
 	// 以下scene変数は同時に存在する可能性がある
 	title *title
-	stage *stage2
+	stage *stage
 }
 
 const (
@@ -64,7 +64,7 @@ func (g *game) updateTitle() {
 	case gameShowTitle:
 		log.Fatal("invalid action: title -> gameShowTitle")
 	case gameShowStage:
-		g.stage = newStage2()
+		g.stage = newStage()
 		g.state.To(sceneStage)
 	}
 }

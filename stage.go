@@ -1,172 +1,200 @@
 package main
 
 import (
-	"fmt"
+	"image/color"
 
 	"github.com/eihigh/love-and-hate/internal/draw"
-	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/love-and-hate/internal/objects"
 	"github.com/eihigh/love-and-hate/internal/sprites"
-	"github.com/eihigh/love-and-hate/levels/level01"
 	"github.com/eihigh/sio"
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
-type level interface {
-	Update(screen *ebiten.Image, objs *objects.Objects)
+func c2f(c complex128) (float64, float64) {
+	return real(c), imag(c)
 }
 
 var (
-	levelMakers = map[int]func() level{
-		1: func() level { return level01.New() },
-	}
+	red = color.RGBA{255, 0, 0, 255}
 )
 
-// stageはステージ突入ごとに必ず作り直し
-type stage struct {
-	state sio.Stm
-	objs  *objects.Objects
-	level level
+const (
+	phaseTitleIn int = iota
+	phaseTitleOut
+	phaseBody
+	phaseResult
+)
 
-	tl sio.Timeline
+type stage struct {
+	objs *objects.Objects
+
+	loveIcon, loveBar *sio.Rect
+	hateIcon, hateBar *sio.Rect
+
+	states map[string]sio.Stm
+
+	phases     []phase
+	phaseIndex int
 }
 
-func newStage(level int) *stage {
-	tl := sio.Timeline{}
-	tl.Append("stage title", 50)
-	tl.Append("player fadein", 20)
-	tl.Append("play", -1)
+type phase interface {
+	update(*stage)
+	base() *phaseBase
+}
 
-	return &stage{
-		objs:  objects.NewObjects(),
-		level: levelMakers[level](),
-		tl:    tl,
+func newStage() *stage {
+	s := &stage{}
+	s.objs = objects.NewObjects()
+
+	s.loveIcon = &sio.Rect{
+		X: 160 - 16,
+		Y: 4,
+		W: 16,
+		H: 16,
 	}
+	s.hateIcon = &sio.Rect{
+		X: 160,
+		Y: 4,
+		W: 16,
+		H: 16,
+	}
+	s.loveBar = s.loveIcon.Clone(4, 6).SetSize(160-16, 6)
+	s.hateBar = s.hateIcon.Clone(6, 4).SetSize(160-16, 6)
+
+	s.phases = append(s.phases, newPhase1())
+
+	s.states = map[string]sio.Stm{
+		"stage": sio.Stm{},
+		"phase": sio.Stm{},
+	}
+	return s
 }
 
 func (s *stage) update() action {
 	o := s.objs
-	if debugMode {
-		pl := o.Player
-		dmsg := fmt.Sprintf("L %d, H %d, len %d, FPS %d", pl.Loves, pl.Hates, len(o.Symbols), int(ebiten.CurrentFPS()))
-		ebitenutil.DebugPrint(scr, dmsg)
+	for _, st := range s.states {
+		st.Update()
 	}
 
-	switch s.tl.Current() {
-	case "stage title":
-	case "player fadein":
-	case "play":
+	ph := s.phases[s.phaseIndex]
+	ph.update(s)
+	bd(s.loveIcon)
+	bd(s.hateIcon)
+
+	o.UpdatePlayer()
+
+	for _, sym := range o.Symbols {
+		sym.Update()
 	}
-
-	s.tl.Update()
-
-	s.movePlayer()
-
-	// call level-specific process
-	s.level.Update(scr, o)
+	o.Collision(view)
 
 	s.draw()
 
-	s.state.Update()
 	return noAction
 }
 
-func (s *stage) movePlayer() {
-	r, l, u, d := input.OnRight(), input.OnLeft(), input.OnUp(), input.OnDown()
-	if r && l {
-		r, l = false, false
-	}
-	if u && d {
-		u, d = false, false
-	}
-
-	// 1直角=1.0
-	a := 0.0
-	spd := 2.0 + 0i
-	if r {
-		if u {
-			a = -0.5
-		} else if d {
-			a = 0.5
-		} else {
-			a = 0.0
-		}
-	} else if l {
-		if u {
-			a = -1.5
-		} else if d {
-			a = 1.5
-		} else {
-			a = 2.0
-		}
-	} else if u {
-		a = -1.0
-	} else if d {
-		a = 1.0
-	} else {
-		spd = 0
-	}
-
-	s.objs.Player.Pos += sio.UnitVector(a) * spd
-}
-
-func (s *stage) collision() {
-
-	o := s.objs
-
-	p := o.Player.Pos
-	living := 0
-
-	for _, sym := range o.Symbols {
-		alpha := sym.Alpha()
-		if alpha < 0.99 {
-			continue // skip disabled symbol
-		}
-
-		b := sym.Base()
-		diff := sio.AbsSq(b.Pos - p)
-
-		if diff < 8*8 {
-			if b.IsLove {
-				o.Player.Loves++
-			} else {
-				o.Player.Hates++
-			}
-			b.IsDead = true
-		}
-
-		if !view.Contains(b.Pos) {
-			b.IsDead = true
-		}
-
-		if !b.IsDead {
-			living++
-		}
-	}
-
-	// clean dead objects
-	next := make([]objects.Symbol, 0, living)
-	for _, sym := range o.Symbols {
-		if !sym.Base().IsDead {
-			next = append(next, sym)
-		}
-	}
-}
-
 func (s *stage) draw() {
-
 	o := s.objs
 	dg := &draw.Group{Dst: scr}
 
-	spr := sprites.Sprites["player"]
-	clr := 0.8 * sio.UWave(s.state.RatioTo(20))
-	spr.Draw(dg,
-		draw.Shift(c2f(o.Player.Pos)),
-		draw.Paint(1, 1, 1-clr, 1),
-	)
+	pl := sprites.Sprites["player"]
+	yellow := 1 - 0.8*sio.UWave(s.states["stage"].RatioTo(20))
+	pl.Draw(dg, draw.Shift(c2f(o.Player.Pos)), draw.Paint(1, 1, yellow, 1))
+
+	for _, sym := range o.Symbols {
+		b := sym.Base()
+		spr := sprites.HateSprite
+		if b.IsLove {
+			spr = sprites.LoveSprite
+		}
+		spr.Draw(dg, draw.Shift(c2f(b.Pos)), draw.Paint(1, 1, 1, sym.Alpha()))
+	}
+
+	// UIs
+	pb := s.phases[s.phaseIndex].base()
+	show := float64(pb.loves.show)
+	ratio := float64(pb.loves.min) / show
+	bar := s.loveBar.Clone(6, 6).Scale(ratio, 1)
+	dg.DrawRect(bar, red)
+	//	bar := s.r.loveBar
+	//	show := float64(s.phase.showLoves)
+	//
+	//	min := float64(s.phase.minLoves) / show
+	//	ax, ay := bar.Pos(6)
+	//	bx, by := ax-bar.W*min, ay
+	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
+	//
+	//	ratio := float64(o.Player.Loves) / show
+	//	ax, ay = bar.Pos(6)
+	//	bx, by = ax-bar.W*ratio, ay
+	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, color.White)
+	//
+	//	bar = s.r.hateBar
+	//	show = float64(s.phase.showHates)
+	//
+	//	max := float64(s.phase.maxHates) / show
+	//	ax, ay = bar.Pos(4)
+	//	bx, by = ax+bar.W*max, ay
+	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, color.White)
+	//
+	//	ratio = float64(o.Player.Hates) / show
+	//	ax, ay = bar.Pos(4)
+	//	bx, by = ax+bar.W*ratio, ay
+	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
+	//
+	//	alpha := 1.0
+	//	if s.phase.minLoves > o.Player.Loves {
+	//		alpha = 1 - 0.5*sio.UWave(s.state.RatioTo(40))
+	//	}
+	//	sprites.LoveSprite.Draw(dg, draw.Shift(s.r.love.Pos(5)), draw.Paint(1, 1, 1, alpha))
+	//	sprites.HateSprite.Draw(dg, draw.Shift(s.r.hate.Pos(5)))
+	//	bd(s.r.love)
+	//	bd(s.r.hate)
 }
 
-func c2f(c complex128) (float64, float64) {
-	return real(c), imag(c)
+// ------------------------------------------------------------
+//  Symbols
+// ------------------------------------------------------------
+
+type up struct {
+	objects.SymbolBase
+	vec   complex128
+	state sio.Stm
+}
+
+func newUp() *up {
+	u := &up{}
+	u.Pos = complex(50, 200)
+	u.IsLove = true
+	return u
+}
+
+func (u *up) Alpha() float64 {
+	return u.state.RatioTo(10)
+}
+
+func (u *up) Update() {
+	u.state.Update()
+	u.Pos += complex(0, -1)
+}
+
+type up2 struct {
+	objects.SymbolBase
+	vec   complex128
+	state sio.Stm
+}
+
+func newUp2() *up2 {
+	u := &up2{}
+	u.Pos = complex(100, 200)
+	u.IsLove = false
+	return u
+}
+
+func (u *up2) Alpha() float64 {
+	return u.state.RatioTo(10)
+}
+
+func (u *up2) Update() {
+	u.state.Update()
+	u.Pos += complex(0, -1)
 }
