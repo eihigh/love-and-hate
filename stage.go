@@ -14,7 +14,8 @@ func c2f(c complex128) (float64, float64) {
 }
 
 var (
-	red = color.RGBA{255, 0, 0, 255}
+	red   = color.RGBA{255, 0, 0, 255}
+	white = color.RGBA{255, 255, 255, 255}
 )
 
 const (
@@ -111,10 +112,29 @@ func (s *stage) draw() {
 
 	// UIs
 	pb := s.phases[s.phaseIndex].base()
-	show := float64(pb.loves.show)
-	ratio := float64(pb.loves.min) / show
-	bar := s.loveBar.Clone(6, 6).Scale(ratio, 1)
-	dg.DrawRect(bar, red)
+
+	// draw love
+	bk, fr := pb.love.ratios(o.Player.Loves)
+	bc, fc := white, red
+	if pb.love.isPositive {
+		bc, fc = fc, bc
+	}
+	bar := s.loveBar.Clone(6, 6).Scale(bk, 1)
+	dg.DrawRect(bar, bc)
+	bar = s.loveBar.Clone(6, 6).Scale(fr, 1)
+	dg.DrawRect(bar, fc)
+
+	// draw hate
+	bk, fr = pb.hate.ratios(o.Player.Hates)
+	bc, fc = white, red
+	if pb.hate.isPositive {
+		bc, fc = fc, bc
+	}
+	bar = s.hateBar.Clone(4, 4).Scale(bk, 1)
+	dg.DrawRect(bar, bc)
+	bar = s.hateBar.Clone(4, 4).Scale(fr, 1)
+	dg.DrawRect(bar, fc)
+
 	//	bar := s.r.loveBar
 	//	show := float64(s.phase.showLoves)
 	//

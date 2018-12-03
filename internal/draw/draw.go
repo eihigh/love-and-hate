@@ -34,6 +34,9 @@ func (g *Group) Draw(src *ebiten.Image, fns ...OptionFn) {
 }
 
 func (g *Group) DrawRect(r *sio.Rect, clr color.Color) {
+	if r.W < 0.5 || r.H < 0.5 {
+		return
+	}
 	i, _ := ebiten.NewImage(int(r.W), int(r.H), ebiten.FilterDefault)
 	i.Fill(clr)
 	x, y := r.Pos(7)
