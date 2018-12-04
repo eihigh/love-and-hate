@@ -9,8 +9,14 @@ import (
 
 var (
 	op  = &ebiten.DrawImageOptions{}
-	nop = &ebiten.DrawImageOptions{}
+	top = &ebiten.DrawTrianglesOptions{}
+
+	emptyImage, _ = ebiten.NewImage(16, 16, ebiten.FilterDefault)
 )
+
+func init() {
+	emptyImage.Fill(color.White)
+}
 
 type Group struct {
 	Dst *ebiten.Image
@@ -33,13 +39,41 @@ func (g *Group) Draw(src *ebiten.Image, fns ...OptionFn) {
 	g.Dst.DrawImage(src, op)
 }
 
-func (g *Group) DrawRect(r *sio.Rect, clr color.Color) {
-	i, _ := ebiten.NewImage(int(r.W), int(r.H), ebiten.FilterDefault)
-	i.Fill(clr)
-	x, y := r.Pos(7)
-	nop.GeoM.Translate(x, y)
-	g.Dst.DrawImage(i, nop)
-	nop.GeoM.Reset()
+func (gr *Group) DrawRect(re *sio.Rect, clr color.Color) {
+	vs := []ebiten.Vertex{
+		{
+			DstX: float32(re.X),
+			DstY: float32(re.Y),
+		},
+		{
+			DstX: float32(re.X + re.W),
+			DstY: float32(re.Y),
+		},
+		{
+			DstX: float32(re.X + re.W),
+			DstY: float32(re.Y + re.H),
+		},
+		{
+			DstX: float32(re.X),
+			DstY: float32(re.Y + re.H),
+		},
+	}
+
+	for _, v := range vs {
+		v.ColorR = 1
+		v.ColorG = 1
+		v.ColorB = 1
+		v.ColorA = 1
+	}
+
+	indices := []uint16{
+		0, 1, 3, 1, 3, 2,
+	}
+
+	gr.colorM.Reset()
+	gr.colorM.Apply(clr)
+	top.ColorM = gr.colorM
+	gr.Dst.DrawTriangles(vs, indices, emptyImage, top)
 }
 
 type OptionFn func(*Group)
