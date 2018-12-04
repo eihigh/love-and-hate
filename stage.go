@@ -6,7 +6,9 @@ import (
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/objects"
 	"github.com/eihigh/love-and-hate/internal/sprites"
+	"github.com/eihigh/love-and-hate/internal/text"
 	"github.com/eihigh/sio"
+	"github.com/fogleman/ease"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
@@ -21,6 +23,7 @@ var (
 
 const (
 	phaseTitleIn int = iota
+	phaseTitleSus
 	phaseTitleOut
 	phaseBody
 	phaseResult
@@ -31,6 +34,7 @@ type stage struct {
 
 	loveIcon, loveBar *sio.Rect
 	hateIcon, hateBar *sio.Rect
+	message           *sio.Rect
 
 	states map[string]*sio.Stm
 
@@ -47,6 +51,7 @@ func newStage() *stage {
 	s := &stage{}
 	s.objs = objects.NewObjects()
 
+	s.message = view.Clone(8, 8).Scale(1, 0.7)
 	s.loveIcon = &sio.Rect{
 		X: 160 - 16,
 		Y: 4,
@@ -88,6 +93,11 @@ func (s *stage) update() action {
 	o.Collision(view)
 
 	s.draw()
+
+	switch s.states["phase"].Get() {
+	case phaseTitleIn, phaseTitleSus, phaseTitleOut:
+		s.drawPhaseTitle()
+	}
 
 	return noAction
 }
@@ -158,6 +168,16 @@ func (s *stage) draw() {
 
 	bd(s.loveIcon)
 	bd(s.hateIcon)
+}
+
+func (s *stage) drawPhaseTitle() {
+	// show phase message
+	mes := s.phases[s.phaseIndex].base().message
+	l := 50.0
+	y := l * ease.OutQuad(s.states["phase"].RatioTo(60))
+	box := s.message.Clone(5, 5).Move(-y, 0)
+	tb := box.NewTextBox(mes, 5)
+	text.Draw(scr, tb, white)
 }
 
 type emo struct {
