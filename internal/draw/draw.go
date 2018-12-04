@@ -39,7 +39,7 @@ func (g *Group) Draw(src *ebiten.Image, fns ...OptionFn) {
 	g.Dst.DrawImage(src, op)
 }
 
-func (gr *Group) DrawRect(re *sio.Rect, clr color.Color) {
+func (g *Group) DrawRect(re *sio.Rect, clr color.Color) {
 	vs := []ebiten.Vertex{
 		{
 			DstX: float32(re.X),
@@ -59,21 +59,19 @@ func (gr *Group) DrawRect(re *sio.Rect, clr color.Color) {
 		},
 	}
 
-	for _, v := range vs {
-		v.ColorR = 1
-		v.ColorG = 1
-		v.ColorB = 1
-		v.ColorA = 1
+	r, gr, b, _ := clr.RGBA()
+	for i := range vs {
+		vs[i].ColorR = float32(r / 0xffff)
+		vs[i].ColorG = float32(gr / 0xffff)
+		vs[i].ColorB = float32(b / 0xffff)
+		vs[i].ColorA = 1
 	}
 
 	indices := []uint16{
 		0, 1, 3, 1, 3, 2,
 	}
 
-	gr.colorM.Reset()
-	gr.colorM.Apply(clr)
-	top.ColorM = gr.colorM
-	gr.Dst.DrawTriangles(vs, indices, emptyImage, top)
+	g.Dst.DrawTriangles(vs, indices, emptyImage, top)
 }
 
 type OptionFn func(*Group)

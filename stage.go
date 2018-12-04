@@ -7,6 +7,7 @@ import (
 	"github.com/eihigh/love-and-hate/internal/objects"
 	"github.com/eihigh/love-and-hate/internal/sprites"
 	"github.com/eihigh/sio"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 func c2f(c complex128) (float64, float64) {
@@ -31,7 +32,7 @@ type stage struct {
 	loveIcon, loveBar *sio.Rect
 	hateIcon, hateBar *sio.Rect
 
-	states map[string]sio.Stm
+	states map[string]*sio.Stm
 
 	phases     []phase
 	phaseIndex int
@@ -63,9 +64,9 @@ func newStage() *stage {
 
 	s.phases = append(s.phases, newPhase1())
 
-	s.states = map[string]sio.Stm{
-		"stage": sio.Stm{},
-		"phase": sio.Stm{},
+	s.states = map[string]*sio.Stm{
+		"stage": &sio.Stm{},
+		"phase": &sio.Stm{},
 	}
 	return s
 }
@@ -115,10 +116,7 @@ func (s *stage) draw() {
 
 	// draw love
 	bk, fr := pb.love.ratios(o.Player.Loves)
-	bc, fc := white, red
-	if pb.love.isPositive {
-		bc, fc = fc, bc
-	}
+	bc, fc := pb.love.colors()
 	bar := s.loveBar.Clone(6, 6).Scale(bk, 1)
 	dg.DrawRect(bar, bc)
 	bar = s.loveBar.Clone(6, 6).Scale(fr, 1)
@@ -126,49 +124,39 @@ func (s *stage) draw() {
 
 	// draw hate
 	bk, fr = pb.hate.ratios(o.Player.Hates)
-	bc, fc = white, red
-	if pb.hate.isPositive {
-		bc, fc = fc, bc
-	}
+	bc, fc = pb.hate.colors()
 	bar = s.hateBar.Clone(4, 4).Scale(bk, 1)
 	dg.DrawRect(bar, bc)
 	bar = s.hateBar.Clone(4, 4).Scale(fr, 1)
 	dg.DrawRect(bar, fc)
 
-	//	bar := s.r.loveBar
-	//	show := float64(s.phase.showLoves)
-	//
-	//	min := float64(s.phase.minLoves) / show
-	//	ax, ay := bar.Pos(6)
-	//	bx, by := ax-bar.W*min, ay
-	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
-	//
-	//	ratio := float64(o.Player.Loves) / show
-	//	ax, ay = bar.Pos(6)
-	//	bx, by = ax-bar.W*ratio, ay
-	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, color.White)
-	//
-	//	bar = s.r.hateBar
-	//	show = float64(s.phase.showHates)
-	//
-	//	max := float64(s.phase.maxHates) / show
-	//	ax, ay = bar.Pos(4)
-	//	bx, by = ax+bar.W*max, ay
-	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, color.White)
-	//
-	//	ratio = float64(o.Player.Hates) / show
-	//	ax, ay = bar.Pos(4)
-	//	bx, by = ax+bar.W*ratio, ay
-	//	ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
-	//
-	//	alpha := 1.0
-	//	if s.phase.minLoves > o.Player.Loves {
-	//		alpha = 1 - 0.5*sio.UWave(s.state.RatioTo(40))
-	//	}
-	//	sprites.LoveSprite.Draw(dg, draw.Shift(s.r.love.Pos(5)), draw.Paint(1, 1, 1, alpha))
-	//	sprites.HateSprite.Draw(dg, draw.Shift(s.r.hate.Pos(5)))
-	//	bd(s.r.love)
-	//	bd(s.r.hate)
+	alpha := 1.0
+	if pb.love.isPoor(o.Player.Loves) {
+		alpha = 1 - 0.5*sio.UWave(s.states["stage"].RatioTo(40))
+	}
+	sprites.LoveSprite.Draw(dg, draw.Shift(s.loveIcon.Pos(5)), draw.Paint(1, 1, 1, alpha))
+	if pb.love.isOver(o.Player.Loves) {
+		ax, ay := s.loveIcon.Pos(7)
+		bx, by := s.loveIcon.Pos(3)
+		ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
+		ax, ay = s.loveIcon.Pos(9)
+		bx, by = s.loveIcon.Pos(1)
+		ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
+	}
+
+	alpha = 1.0
+	if pb.hate.isPoor(o.Player.Hates) {
+		alpha = 1 - 0.5*sio.UWave(s.states["stage"].RatioTo(40))
+	}
+	sprites.HateSprite.Draw(dg, draw.Shift(s.hateIcon.Pos(5)), draw.Paint(1, 1, 1, alpha))
+	if pb.hate.isOver(o.Player.Hates) {
+		ax, ay := s.hateIcon.Pos(7)
+		bx, by := s.hateIcon.Pos(3)
+		ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
+		ax, ay = s.hateIcon.Pos(9)
+		bx, by = s.hateIcon.Pos(1)
+		ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
+	}
 }
 
 // ------------------------------------------------------------

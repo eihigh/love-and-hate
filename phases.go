@@ -1,6 +1,10 @@
 package main
 
-import "github.com/eihigh/sio"
+import (
+	"image/color"
+
+	"github.com/eihigh/sio"
+)
 
 type emo struct {
 	target     int
@@ -20,6 +24,13 @@ func (e *emo) isPoor(current int) bool {
 		return false
 	}
 	return e.target > current
+}
+
+func (e *emo) colors() (back, front color.Color) {
+	if e.isPositive {
+		return red, white
+	}
+	return white, red
 }
 
 func (e *emo) ratios(current int) (back, front float64) {

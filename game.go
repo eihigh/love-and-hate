@@ -30,10 +30,12 @@ const (
 func newGame() *game {
 	sprites.Load()
 
-	return &game{
-		title: newTitle(),
-		stage: nil,
+	g := &game{
+		title: nil,
+		stage: newStage(),
 	}
+	g.state.To(sceneStage)
+	return g
 }
 
 func (g *game) update(screen *ebiten.Image) error {
