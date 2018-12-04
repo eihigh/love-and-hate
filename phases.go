@@ -1,51 +1,13 @@
 package main
 
 import (
-	"image/color"
-
+	"github.com/eihigh/love-and-hate/internal/objects"
 	"github.com/eihigh/sio"
 )
 
-type emo struct {
-	target     int
-	shown      int
-	isPositive bool
-}
-
-func (e *emo) isOver(current int) bool {
-	if e.isPositive {
-		return false
-	}
-	return e.target <= current
-}
-
-func (e *emo) isPoor(current int) bool {
-	if !e.isPositive {
-		return false
-	}
-	return e.target > current
-}
-
-func (e *emo) colors() (back, front color.Color) {
-	if e.isPositive {
-		return red, white
-	}
-	return white, red
-}
-
-func (e *emo) ratios(current int) (back, front float64) {
-	s := float64(e.shown)
-	back = float64(e.target) / s
-	front = float64(current) / s
-	return back, front
-}
-
 type phaseBase struct {
-	message      string
-	love, hate   emo
-	loves, hates struct {
-		min, max, show int
-	}
+	message    string
+	love, hate emo
 }
 
 func (p *phaseBase) base() *phaseBase {
@@ -76,4 +38,52 @@ func (p *phase1) update(s *stage) {
 		p.state.Reset()
 	}
 	p.state.Update()
+}
+
+// ------------------------------------------------------------
+//  Symbols
+// ------------------------------------------------------------
+
+type up struct {
+	objects.SymbolBase
+	vec   complex128
+	state sio.Stm
+}
+
+func newUp() *up {
+	u := &up{}
+	u.Pos = complex(50, 200)
+	u.IsLove = true
+	return u
+}
+
+func (u *up) Alpha() float64 {
+	return u.state.RatioTo(10)
+}
+
+func (u *up) Update() {
+	u.state.Update()
+	u.Pos += complex(0, -1)
+}
+
+type up2 struct {
+	objects.SymbolBase
+	vec   complex128
+	state sio.Stm
+}
+
+func newUp2() *up2 {
+	u := &up2{}
+	u.Pos = complex(100, 200)
+	u.IsLove = false
+	return u
+}
+
+func (u *up2) Alpha() float64 {
+	return u.state.RatioTo(10)
+}
+
+func (u *up2) Update() {
+	u.state.Update()
+	u.Pos += complex(0, -1)
 }

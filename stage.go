@@ -79,8 +79,6 @@ func (s *stage) update() action {
 
 	ph := s.phases[s.phaseIndex]
 	ph.update(s)
-	bd(s.loveIcon)
-	bd(s.hateIcon)
 
 	o.UpdatePlayer()
 
@@ -157,52 +155,41 @@ func (s *stage) draw() {
 		bx, by = s.hateIcon.Pos(1)
 		ebitenutil.DrawLine(scr, ax, ay, bx, by, red)
 	}
+
+	bd(s.loveIcon)
+	bd(s.hateIcon)
 }
 
-// ------------------------------------------------------------
-//  Symbols
-// ------------------------------------------------------------
-
-type up struct {
-	objects.SymbolBase
-	vec   complex128
-	state sio.Stm
+type emo struct {
+	target     int
+	shown      int
+	isPositive bool
 }
 
-func newUp() *up {
-	u := &up{}
-	u.Pos = complex(50, 200)
-	u.IsLove = true
-	return u
+func (e *emo) isOver(current int) bool {
+	if e.isPositive {
+		return false
+	}
+	return e.target <= current
 }
 
-func (u *up) Alpha() float64 {
-	return u.state.RatioTo(10)
+func (e *emo) isPoor(current int) bool {
+	if !e.isPositive {
+		return false
+	}
+	return e.target > current
 }
 
-func (u *up) Update() {
-	u.state.Update()
-	u.Pos += complex(0, -1)
+func (e *emo) colors() (back, front color.Color) {
+	if e.isPositive {
+		return red, white
+	}
+	return white, red
 }
 
-type up2 struct {
-	objects.SymbolBase
-	vec   complex128
-	state sio.Stm
-}
-
-func newUp2() *up2 {
-	u := &up2{}
-	u.Pos = complex(100, 200)
-	u.IsLove = false
-	return u
-}
-
-func (u *up2) Alpha() float64 {
-	return u.state.RatioTo(10)
-}
-
-func (u *up2) Update() {
-	u.state.Update()
-	u.Pos += complex(0, -1)
+func (e *emo) ratios(current int) (back, front float64) {
+	s := float64(e.shown)
+	back = float64(e.target) / s
+	front = float64(current) / s
+	return back, front
 }
