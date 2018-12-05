@@ -99,7 +99,7 @@ func (s *stage) update() action {
 	pw := s.workers["phase"]
 	switch pw.State {
 	case "begin":
-		if pw.Count > 30 {
+		if pw.Count > 40 {
 			pw.Switch("text")
 		}
 

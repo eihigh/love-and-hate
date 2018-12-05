@@ -17,6 +17,7 @@ func (p *phaseBase) base() *phaseBase {
 type phase1 struct {
 	phaseBase
 	state sio.Stm
+	w     sio.Worker
 }
 
 func newPhase1() *phase1 {
@@ -28,63 +29,59 @@ func newPhase1() *phase1 {
 	p.hate.isPositive = false
 	p.hate.target = 10
 	p.hate.shown = 30
+
+	p.w = sio.Worker{
+		State: "begin",
+	}
 	return p
 }
 
 func (p *phase1) update(s *stage) {
-	o := s.objs
-	if p.state.HasCounted(7) {
-		o.Symbols = append(o.Symbols, newUp())
-		o.Symbols = append(o.Symbols, newUp2())
-		p.state.Reset()
+	p.w.Count++
+
+	switch p.w.State {
+	case "begin":
+		// 何もしない
+		if p.w.Count > 180 {
+			p.w.Switch("main")
+		}
+
+	case "main":
+		p.updateMain(s)
 	}
-	p.state.Update()
+}
+
+func (p *phase1) updateMain(s *stage) {
+	o := s.objs
+	if p.w.Count%10 == 0 {
+		o.Symbols = append(o.Symbols, newLinear(1+1i))
+	}
 }
 
 // ------------------------------------------------------------
 //  Symbols
 // ------------------------------------------------------------
 
-type up struct {
+type linear struct {
 	objects.SymbolBase
-	vec   complex128
-	state sio.Stm
+	vec complex128
+	age float64
 }
 
-func newUp() *up {
-	u := &up{}
-	u.Pos = complex(50, 200)
-	u.IsLove = true
-	return u
+func newLinear(v complex128) *linear {
+	return &linear{
+		vec: v,
+	}
 }
 
-func (u *up) Alpha() float64 {
-	return u.state.RatioTo(10)
+func (l *linear) Update() {
+	l.Pos += l.vec
+	l.age++
 }
 
-func (u *up) Update() {
-	u.state.Update()
-	u.Pos += complex(0, -1)
-}
-
-type up2 struct {
-	objects.SymbolBase
-	vec   complex128
-	state sio.Stm
-}
-
-func newUp2() *up2 {
-	u := &up2{}
-	u.Pos = complex(100, 200)
-	u.IsLove = false
-	return u
-}
-
-func (u *up2) Alpha() float64 {
-	return u.state.RatioTo(10)
-}
-
-func (u *up2) Update() {
-	u.state.Update()
-	u.Pos += complex(0, -1)
+func (l *linear) Alpha() float64 {
+	if l.age < 10 {
+		return l.age / 10
+	}
+	return 1
 }
