@@ -36,7 +36,8 @@ type stage struct {
 	hateIcon, hateBar *sio.Rect
 	message           *sio.Rect
 
-	states map[string]*sio.Stm
+	states  map[string]*sio.Stm
+	workers map[string]*sio.Worker
 
 	phases     []phase
 	phaseIndex int
@@ -73,6 +74,15 @@ func newStage() *stage {
 		"stage": &sio.Stm{},
 		"phase": &sio.Stm{},
 	}
+
+	s.workers = map[string]*sio.Worker{
+		"phase": &sio.Worker{
+			State: "begin",
+		},
+		"ui": &sio.Worker{
+			State: "begin",
+		},
+	}
 	return s
 }
 
@@ -80,6 +90,46 @@ func (s *stage) update() action {
 	o := s.objs
 	for _, st := range s.states {
 		st.Update()
+	}
+
+	for _, w := range s.workers {
+		w.Count++
+	}
+
+	pw := s.workers["phase"]
+	switch pw.State {
+	case "begin":
+		if pw.Count > 30 {
+			pw.Switch("text")
+		}
+
+	case "text":
+		pw.Do(0, 300, func(t float64) {
+			mes := s.phases[s.phaseIndex].base().message
+			l := 50.0
+			x, y := 160.0, 100.0
+			alpha := 1.0
+
+			pw.Do(0, 100, func(t float64) {
+				y -= l * (1 - ease.OutQuad(t))
+				alpha = t
+			})
+
+			pw.Do(200, 300, func(t float64) {
+				y += l * ease.InQuad(t)
+				alpha = 1 - t
+			})
+
+			box := s.message.Clone(5, 5).Shift(x, y)
+			tb := box.NewTextBox(mes, 5)
+			text.Draw(scr, tb, color.Alpha{uint8(255 * alpha)})
+		})
+		if pw.Count >= 300 {
+			pw.Switch("main")
+		}
+
+	case "main":
+	case "result":
 	}
 
 	ph := s.phases[s.phaseIndex]
@@ -93,11 +143,6 @@ func (s *stage) update() action {
 	o.Collision(view)
 
 	s.draw()
-
-	switch s.states["phase"].Get() {
-	case phaseTitleIn, phaseTitleSus, phaseTitleOut:
-		s.drawPhaseTitle()
-	}
 
 	return noAction
 }
@@ -121,11 +166,18 @@ func (s *stage) draw() {
 
 	// UIs
 	pb := s.phases[s.phaseIndex].base()
+	uw := s.workers["ui"]
+	scale := 1.0
+	if uw.State == "begin" {
+		uw.Do(0, 60, func(t float64) {
+			scale = ease.OutQuad(t)
+		})
+	}
 
 	// draw love
 	bk, fr := pb.love.ratios(o.Player.Loves)
 	bc, fc := pb.love.colors()
-	bar := s.loveBar.Clone(6, 6).Scale(bk, 1)
+	bar := s.loveBar.Clone(6, 6).Scale(bk*scale, 1)
 	dg.DrawRect(bar, bc)
 	bar = s.loveBar.Clone(6, 6).Scale(fr, 1)
 	dg.DrawRect(bar, fc)
@@ -133,7 +185,7 @@ func (s *stage) draw() {
 	// draw hate
 	bk, fr = pb.hate.ratios(o.Player.Hates)
 	bc, fc = pb.hate.colors()
-	bar = s.hateBar.Clone(4, 4).Scale(bk, 1)
+	bar = s.hateBar.Clone(4, 4).Scale(bk*scale, 1)
 	dg.DrawRect(bar, bc)
 	bar = s.hateBar.Clone(4, 4).Scale(fr, 1)
 	dg.DrawRect(bar, fc)
@@ -168,16 +220,6 @@ func (s *stage) draw() {
 
 	bd(s.loveIcon)
 	bd(s.hateIcon)
-}
-
-func (s *stage) drawPhaseTitle() {
-	// show phase message
-	mes := s.phases[s.phaseIndex].base().message
-	l := 50.0
-	y := l * ease.OutQuad(s.states["phase"].RatioTo(60))
-	box := s.message.Clone(5, 5).Move(-y, 0)
-	tb := box.NewTextBox(mes, 5)
-	text.Draw(scr, tb, white)
 }
 
 type emo struct {

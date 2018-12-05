@@ -21,6 +21,7 @@ type phase1 struct {
 
 func newPhase1() *phase1 {
 	p := &phase1{}
+	p.message = "あしたはおまつりだよ！\nねえねえ、ママきいてる？"
 	p.love.isPositive = true
 	p.love.target = 20
 	p.love.shown = 100
