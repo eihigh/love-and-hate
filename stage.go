@@ -21,14 +21,6 @@ var (
 	white = color.RGBA{255, 255, 255, 255}
 )
 
-const (
-	phaseTitleIn int = iota
-	phaseTitleSus
-	phaseTitleOut
-	phaseBody
-	phaseResult
-)
-
 type stage struct {
 	objs *objects.Objects
 
@@ -137,6 +129,9 @@ func (s *stage) update() action {
 
 	o.UpdatePlayer()
 
+	for _, fx := range o.Effects {
+		fx.Update()
+	}
 	for _, sym := range o.Symbols {
 		sym.Update()
 	}
@@ -151,10 +146,12 @@ func (s *stage) draw() {
 	o := s.objs
 	dg := &draw.Group{Dst: scr}
 
+	// draw player
 	pl := sprites.Sprites["player"]
 	yellow := 1 - 0.8*sio.UWave(s.states["stage"].RatioTo(20))
 	pl.Draw(dg, draw.Shift(c2f(o.Player.Pos)), draw.Paint(1, 1, yellow, 1))
 
+	// draw symbols
 	for _, sym := range o.Symbols {
 		b := sym.Base()
 		spr := sprites.HateSprite
@@ -162,6 +159,25 @@ func (s *stage) draw() {
 			spr = sprites.LoveSprite
 		}
 		spr.Draw(dg, draw.Shift(c2f(b.Pos)), draw.Paint(1, 1, 1, sym.Alpha()))
+	}
+
+	// draw effects
+	for _, fx := range o.Effects {
+		b := fx.Base()
+		switch b.Type {
+		case objects.EffectRipple:
+			life := 30
+			b.Count++
+			n := b.Count % life
+			t := float64(n) / float64(life)
+			scale := 1.8*t + 0.5
+			sprites.Sprites["ripple"].Draw(
+				dg,
+				draw.Scale(scale, scale),
+				draw.Shift(c2f(b.Pos)),
+				draw.Paint(1, 1, 1, 1-t),
+			)
+		}
 	}
 
 	// UIs

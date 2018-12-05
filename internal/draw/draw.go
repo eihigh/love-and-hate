@@ -82,6 +82,12 @@ func Shift(x, y float64) OptionFn {
 	}
 }
 
+func Scale(x, y float64) OptionFn {
+	return func(g *Group) {
+		g.geoM.Scale(x, y)
+	}
+}
+
 func Paint(r, g, b, a float64) OptionFn {
 	return func(gr *Group) {
 		gr.colorM.Scale(r, g, b, a)

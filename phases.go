@@ -41,7 +41,6 @@ func (p *phase1) update(s *stage) {
 
 	switch p.w.State {
 	case "begin":
-		// 何もしない
 		if p.w.Count > 180 {
 			p.w.Switch("main")
 		}
@@ -55,6 +54,10 @@ func (p *phase1) updateMain(s *stage) {
 	o := s.objs
 	if p.w.Count%10 == 0 {
 		o.Symbols = append(o.Symbols, newLinear(1+1i))
+	}
+
+	if p.w.Count%40 == 0 {
+		o.Effects = append(o.Effects, newMark())
 	}
 }
 
@@ -84,4 +87,23 @@ func (l *linear) Alpha() float64 {
 		return l.age / 10
 	}
 	return 1
+}
+
+// ------------------------------------------------------------
+//  Effects
+// ------------------------------------------------------------
+
+type mark struct {
+	objects.EffectBase
+}
+
+func newMark() *mark {
+	m := &mark{}
+	m.Type = objects.EffectRipple
+	m.Pos = complex(100, 200)
+	return m
+}
+
+func (m *mark) Update() {
+	m.Pos += complex(0, -1)
 }
