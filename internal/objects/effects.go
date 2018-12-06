@@ -1,5 +1,10 @@
 package objects
 
+import (
+	"github.com/eihigh/love-and-hate/internal/draw"
+	"github.com/eihigh/love-and-hate/internal/sprites"
+)
+
 type EffectType int
 
 const (
@@ -16,3 +21,19 @@ type EffectBase struct {
 }
 
 func (e *EffectBase) Base() *EffectBase { return e }
+
+func (e *EffectBase) Draw(dg *draw.Group) {
+	switch e.Type {
+	case EffectRipple:
+		life := 30
+		n := e.Count % life
+		t := float64(n) / float64(life)
+		scale := 1.8*t + 0.5
+		sprites.Sprites["ripple"].Draw(
+			dg,
+			draw.Scale(scale, scale),
+			draw.Shift(real(e.Pos), imag(e.Pos)),
+			draw.Paint(1, 1, 1, 1-t),
+		)
+	}
+}

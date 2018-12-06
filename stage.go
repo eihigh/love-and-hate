@@ -9,6 +9,7 @@ import (
 	"github.com/eihigh/love-and-hate/internal/text"
 	"github.com/eihigh/sio"
 	"github.com/fogleman/ease"
+	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
@@ -37,6 +38,7 @@ type stage struct {
 
 type phase interface {
 	update(*stage)
+	draw(*ebiten.Image)
 	base() *phaseBase
 }
 
@@ -145,6 +147,9 @@ func (s *stage) update() action {
 func (s *stage) draw() {
 	o := s.objs
 	dg := &draw.Group{Dst: scr}
+
+	// draw phase
+	s.phases[s.phaseIndex].draw(scr)
 
 	// draw player
 	pl := sprites.Sprites["player"]
