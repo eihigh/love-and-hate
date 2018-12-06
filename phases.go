@@ -138,6 +138,10 @@ func newLinear(p, v complex128) *linear {
 }
 
 func (l *linear) Update() {
+	if l.age < 40 {
+		curl := sio.Rot(200)
+		l.vec *= curl
+	}
 	l.Pos += l.vec
 	l.age++
 }
