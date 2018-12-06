@@ -159,22 +159,10 @@ func (s *stage) draw() {
 	}
 
 	// draw effects
-	for _, fx := range o.Effects {
-		b := fx.Base()
-		switch b.Type {
-		case objects.EffectRipple:
-			life := 30
-			b.Count++
-			n := b.Count % life
-			t := float64(n) / float64(life)
-			scale := 1.8*t + 0.5
-			sprites.Sprites["ripple"].Draw(
-				dg,
-				draw.Scale(scale, scale),
-				draw.Shift(c2f(b.Pos)),
-				draw.Paint(1, 1, 1, 1-t),
-			)
-		}
+	for _, e := range o.Effects {
+		b := e.Base()
+		b.Count++
+		b.Draw(dg)
 	}
 
 	// UIs
@@ -233,38 +221,4 @@ func (s *stage) draw() {
 
 	bd(s.loveIcon)
 	bd(s.hateIcon)
-}
-
-type emo struct {
-	target     int
-	shown      int
-	isPositive bool
-}
-
-func (e *emo) isOver(current int) bool {
-	if e.isPositive {
-		return false
-	}
-	return e.target <= current
-}
-
-func (e *emo) isPoor(current int) bool {
-	if !e.isPositive {
-		return false
-	}
-	return e.target > current
-}
-
-func (e *emo) colors() (back, front color.Color) {
-	if e.isPositive {
-		return red, white
-	}
-	return white, red
-}
-
-func (e *emo) ratios(current int) (back, front float64) {
-	s := float64(e.shown)
-	back = float64(e.target) / s
-	front = float64(current) / s
-	return back, front
 }

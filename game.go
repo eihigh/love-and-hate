@@ -14,27 +14,25 @@ var (
 )
 
 type game struct {
-	state sio.State
+	worker sio.Worker
 
 	// 以下scene変数は同時に存在する可能性がある
 	title *title
 	stage *stage
 }
 
-const (
-	sceneTitle int = iota
-	sceneStage
-	sceneResult
-)
-
 func newGame() *game {
+	// load resources
 	sprites.Load()
 
+	// make instances
 	g := &game{
+		worker: sio.Worker{
+			State: "stage",
+		},
 		title: nil,
 		stage: newStage(),
 	}
-	g.state.To(sceneStage)
 	return g
 }
 
@@ -47,15 +45,15 @@ func (g *game) update(screen *ebiten.Image) error {
 	}
 	scr = screen
 
-	switch g.state.Get() {
-	case sceneTitle:
+	g.worker.Count++
+	switch g.worker.State {
+	case "title":
 		g.updateTitle()
 
-	case sceneStage:
+	case "stage":
 		g.updateStage()
 	}
 
-	g.state.Update()
 	return nil
 }
 
@@ -67,7 +65,7 @@ func (g *game) updateTitle() {
 		log.Fatal("invalid action: title -> gameShowTitle")
 	case gameShowStage:
 		g.stage = newStage()
-		g.state.To(sceneStage)
+		g.worker.State = "stage"
 	}
 }
 
@@ -79,6 +77,6 @@ func (g *game) updateStage() {
 	case gameShowTitle:
 		g.stage = nil // 破棄
 		g.title.reuse()
-		g.state.To(sceneTitle)
+		g.worker.State = "title"
 	}
 }

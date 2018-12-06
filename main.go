@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image/color"
 	"io"
 	"log"
 	"math/rand"
@@ -11,7 +10,6 @@ import (
 	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 const (
@@ -19,8 +17,7 @@ const (
 )
 
 var (
-	view = sio.NewRect(7, 0, 0, 320, 240)
-
+	view      = sio.NewRect(7, 0, 0, 320, 240)
 	debugMode = true
 
 	g *game
@@ -54,13 +51,4 @@ func update(screen *ebiten.Image) error {
 		return nil
 	}
 	return g.update(screen)
-}
-
-func bd(r *sio.Rect) {
-	x, y := r.Pos(7)
-	w, h := r.W, r.H
-	ebitenutil.DrawLine(scr, x, y, x+w, y, color.White)
-	ebitenutil.DrawLine(scr, x+w, y, x+w, y+h, color.White)
-	ebitenutil.DrawLine(scr, x+w, y+h, x, y+h, color.White)
-	ebitenutil.DrawLine(scr, x, y+h, x, y, color.White)
 }

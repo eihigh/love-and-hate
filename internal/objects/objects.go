@@ -8,7 +8,6 @@ import (
 type Symbol interface {
 	Base() *SymbolBase
 	Update()
-	Alpha() float64
 }
 
 type Effect interface {
@@ -21,8 +20,9 @@ type Objects struct {
 	Effects []Effect
 
 	Player struct {
-		Pos          complex128
-		Loves, Hates int
+		Pos              complex128
+		Loves, LastLoves int
+		Hates, LastHates int
 	}
 }
 
@@ -74,7 +74,6 @@ func (o *Objects) UpdatePlayer() {
 func (o *Objects) Collision(view *sio.Rect) {
 
 	p := o.Player.Pos
-	living := 0
 
 	for _, sym := range o.Symbols {
 		alpha := sym.Alpha()
@@ -97,14 +96,10 @@ func (o *Objects) Collision(view *sio.Rect) {
 		if !view.Contains(b.Pos) {
 			b.IsDead = true
 		}
-
-		if !b.IsDead {
-			living++
-		}
 	}
 
 	// clean dead objects
-	next := make([]Symbol, 0, living)
+	next := make([]Symbol, 0, len(o.Symbols))
 	for _, sym := range o.Symbols {
 		if !sym.Base().IsDead {
 			next = append(next, sym)

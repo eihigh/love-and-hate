@@ -5,6 +5,7 @@ import (
 
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 var (
@@ -72,6 +73,15 @@ func (g *Group) DrawRect(re *sio.Rect, clr color.Color) {
 	}
 
 	g.Dst.DrawTriangles(vs, indices, emptyImage, top)
+}
+
+func (g *Group) Border(re *sio.Rect, clr color.Color) {
+	x, y := re.Pos(7)
+	w, h := re.W, re.H
+	ebitenutil.DrawLine(g.Dst, x, y, x+w, y, clr)
+	ebitenutil.DrawLine(g.Dst, x+w, y, x+w, y+h, clr)
+	ebitenutil.DrawLine(g.Dst, x+w, y+h, x, y+h, clr)
+	ebitenutil.DrawLine(g.Dst, x, y+h, x, y, clr)
 }
 
 type OptionFn func(*Group)
