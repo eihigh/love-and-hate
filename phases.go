@@ -85,12 +85,12 @@ func (p *phase1) updateMain(s *stage) {
 	for _, m := range movers {
 		m.update()
 
-		if m.count > 100 {
+		if m.count > 40 {
 			// spawn!
 			dir := sio.UnitVector(rand.Float64())
 			rot := sio.Rot(6)
 			for i := 0; i < 6; i++ {
-				o.Symbols = append(o.Symbols, newLinear(m.pos, dir*1.5))
+				o.Symbols = append(o.Symbols, newLinear(m.pos, dir*1.5+(0-1i)))
 				dir *= rot
 			}
 			m.isDead = true
