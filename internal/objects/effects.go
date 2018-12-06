@@ -28,7 +28,7 @@ func (e *EffectBase) Draw(dg *draw.Group) {
 		life := 30
 		n := e.Count % life
 		t := float64(n) / float64(life)
-		scale := 1.8*t + 0.5
+		scale := 0.3 + t
 		sprites.Sprites["ripple"].Draw(
 			dg,
 			draw.Scale(scale, scale),
