@@ -29,7 +29,6 @@ type stage struct {
 	hateIcon, hateBar *sio.Rect
 	message           *sio.Rect
 
-	states  map[string]*sio.Stm
 	workers map[string]*sio.Worker
 
 	phases     []phase
@@ -64,12 +63,8 @@ func newStage() *stage {
 
 	s.phases = append(s.phases, newPhase1())
 
-	s.states = map[string]*sio.Stm{
-		"stage": &sio.Stm{},
-		"phase": &sio.Stm{},
-	}
-
 	s.workers = map[string]*sio.Worker{
+		"stage": &sio.Worker{},
 		"phase": &sio.Worker{
 			State: "begin",
 		},
@@ -82,9 +77,6 @@ func newStage() *stage {
 
 func (s *stage) update() action {
 	o := s.objs
-	for _, st := range s.states {
-		st.Update()
-	}
 
 	for _, w := range s.workers {
 		w.Count++
@@ -153,7 +145,7 @@ func (s *stage) draw() {
 
 	// draw player
 	pl := sprites.Sprites["player"]
-	yellow := 1 - 0.8*sio.UWave(s.states["stage"].RatioTo(20))
+	yellow := 1 - 0.8*sio.UWave(s.workers["stage"].T(20))
 	pl.Draw(dg, draw.Shift(c2f(o.Player.Pos)), draw.Paint(1, 1, yellow, 1))
 
 	// draw symbols
@@ -213,7 +205,7 @@ func (s *stage) draw() {
 
 	alpha := 1.0
 	if pb.love.isPoor(o.Player.Loves) {
-		alpha = 1 - 0.5*sio.UWave(s.states["stage"].RatioTo(40))
+		alpha = 1 - 0.5*sio.UWave(s.workers["stage"].T(40))
 	}
 	sprites.LoveSprite.Draw(dg, draw.Shift(s.loveIcon.Pos(5)), draw.Paint(1, 1, 1, alpha))
 	if pb.love.isOver(o.Player.Loves) {
@@ -227,7 +219,7 @@ func (s *stage) draw() {
 
 	alpha = 1.0
 	if pb.hate.isPoor(o.Player.Hates) {
-		alpha = 1 - 0.5*sio.UWave(s.states["stage"].RatioTo(40))
+		alpha = 1 - 0.5*sio.UWave(s.workers["stage"].T(40))
 	}
 	sprites.HateSprite.Draw(dg, draw.Shift(s.hateIcon.Pos(5)), draw.Paint(1, 1, 1, alpha))
 	if pb.hate.isOver(o.Player.Hates) {
