@@ -4,8 +4,10 @@ import (
 	"image/color"
 
 	"github.com/eihigh/sio"
+	"github.com/hajimehoshi/bitmapfont"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/text"
 )
 
 var (
@@ -13,6 +15,7 @@ var (
 	top = &ebiten.DrawTrianglesOptions{}
 
 	emptyImage, _ = ebiten.NewImage(16, 16, ebiten.FilterDefault)
+	fface         = bitmapfont.Gothic12r
 )
 
 func init() {
@@ -82,6 +85,15 @@ func (g *Group) Border(re *sio.Rect, clr color.Color) {
 	ebitenutil.DrawLine(g.Dst, x+w, y, x+w, y+h, clr)
 	ebitenutil.DrawLine(g.Dst, x+w, y+h, x, y+h, clr)
 	ebitenutil.DrawLine(g.Dst, x, y+h, x, y, clr)
+}
+
+func (g *Group) DrawText(str string, re *sio.Rect, clr color.Color) {
+	ofsX := int(sio.DefaultEmWidth / 2) // dot position
+	ofsY := int(sio.DefaultEmHeight)    // ditto
+	rows := sio.TextRows(str, re)
+	for _, row := range rows {
+		text.Draw(g.Dst, row.Text, fface, row.X+ofsX, row.Y+ofsY, clr)
+	}
 }
 
 type OptionFn func(*Group)
