@@ -13,3 +13,7 @@
 *.log
 
 *modd.conf
+
+*DS_Store
+*.mp3
+*.log
