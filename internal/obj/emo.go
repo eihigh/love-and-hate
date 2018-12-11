@@ -1,4 +1,4 @@
-package objects
+package obj
 
 import "image/color"
 
@@ -22,11 +22,18 @@ func (e *Emo) IsPoor(current int) bool {
 	return e.Target > current
 }
 
+func (e *Emo) IsOk(current int) bool {
+	if e.IsPositive {
+		return current >= e.Target
+	}
+	return current < e.Target
+}
+
 func (e *Emo) Colors() (back, front color.Color) {
 	if e.IsPositive {
-		return red, white
+		return Red, White
 	}
-	return white, red
+	return White, Red
 }
 
 func (e *Emo) Ratios(current int) (back, front float64) {

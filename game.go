@@ -1,82 +1,54 @@
 package main
 
 import (
-	"log"
-
+	"github.com/eihigh/love-and-hate/internal/env"
+	"github.com/eihigh/love-and-hate/internal/images"
 	"github.com/eihigh/love-and-hate/internal/input"
-	"github.com/eihigh/love-and-hate/internal/sprites"
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
 )
 
-var (
-	scr *ebiten.Image
-)
-
 type game struct {
-	worker sio.Worker
+	scene string
 
-	// 以下scene変数は同時に存在する可能性がある
-	title *title
-	stage *stage
+	// scene変数
+	play *play
 }
 
 func newGame() *game {
 	// load resources
-	sprites.Load()
+	images.Load()
 
-	// make instances
-	g := &game{
-		worker: sio.Worker{
-			State: "stage",
-		},
-		title: nil,
-		stage: newStage(),
+	return &game{
+		scene: "play",
+		play:  newPlay(1), // 1 is for debug TODO
 	}
-	return g
 }
 
-func (g *game) update(screen *ebiten.Image) error {
+func (g *game) update() error {
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
-	if input.OnQuit() {
+
+	if env.DebugMode && input.OnQuit() {
 		return sio.ErrSuccess
 	}
-	scr = screen
 
-	g.worker.Count++
-	switch g.worker.State {
+	switch g.scene {
 	case "title":
-		g.updateTitle()
+		// TODO
 
-	case "stage":
-		g.updateStage()
+	case "play":
+		g.updatePlay()
+
+	case "ending":
 	}
 
 	return nil
 }
 
-func (g *game) updateTitle() {
-	a := g.title.update()
+func (g *game) updatePlay() {
+	g.play.update()
 
-	switch a {
-	case gameShowTitle:
-		log.Fatal("invalid action: title -> gameShowTitle")
-	case gameShowStage:
-		g.stage = newStage()
-		g.worker.State = "stage"
-	}
-}
-
-func (g *game) updateStage() {
-	a := g.stage.update()
-
-	// 各種遷移処理をここで決定する
-	switch a {
-	case gameShowTitle:
-		g.stage = nil // 破棄
-		g.title.reuse()
-		g.worker.State = "title"
-	}
+	// TODO 各種遷移処理をここで決定する
 }

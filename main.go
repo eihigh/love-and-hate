@@ -7,26 +7,19 @@ import (
 	"os"
 	"time"
 
-	"github.com/eihigh/love-and-hate/internal/input"
+	"github.com/eihigh/love-and-hate/internal/audio"
+	"github.com/eihigh/love-and-hate/internal/draw"
+	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/sio"
 	"github.com/hajimehoshi/ebiten"
 )
 
-const (
-	titleName = "love and hate"
-)
-
-var (
-	view      = sio.NewRect(7, 0, 0, 320, 240)
-	debugMode = true
-
-	g *game
-)
+var g *game
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	if debugMode {
+	if env.DebugMode {
 		logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 		if err != nil {
 			panic("cannot open test.log: " + err.Error())
@@ -37,18 +30,19 @@ func main() {
 		log.Println("logging start")
 	}
 
-	g = newGame()
+	audio.Load()
+	audio.SetBgmVolume(0.5)
+	audio.SetSeVolume(0.2)
+	defer audio.Finalize()
 
-	err := ebiten.Run(update, int(view.W), int(view.H), 2, titleName)
+	g = newGame()
+	err := ebiten.Run(update, int(env.View.W), int(env.View.H), 2, env.GameTitle)
 	if err != nil && err != sio.ErrSuccess {
 		log.Fatal(err)
 	}
 }
 
 func update(screen *ebiten.Image) error {
-	if input.OnReset() {
-		g = newGame()
-		return nil
-	}
-	return g.update(screen)
+	draw.Screen = screen
+	return g.update()
 }
