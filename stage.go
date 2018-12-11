@@ -198,7 +198,73 @@ func (s *stage) updatePlayer() {}
 
 func (s *stage) updateUI() {}
 
-func (s *stage) collision() {}
+func (s *stage) updateResultUI() {
+
+	dg := &draw.Group{}
+	ut := s.timers["ui"]
+
+	then := ut.Do(0, 140, func(t sio.Timer) {
+		if t.Count%30 < 20 {
+			re := s.loveIcon.Clone(4, 6)
+			if s.result.isLoveOk {
+				dg.DrawText("OK ", re, obj.White)
+			} else {
+				dg.DrawText("NG ", re, obj.Red)
+			}
+
+			re = s.hateIcon.Clone(6, 4)
+			if s.result.isHateOk {
+				dg.DrawText(" OK", re, obj.White)
+			} else {
+				dg.DrawText(" NG", re, obj.Red)
+			}
+		}
+	})
+
+	then.Once(func() {
+		phase := s.currentPhase()
+		if phase != nil {
+			ut.Switch("")
+		}
+	})
+
+	// draw icons
+	dg.DrawSprite(
+		images.Images["love"],
+		draw.Shift(s.loveIcon.Pos(5)),
+	)
+	dg.DrawSprite(
+		images.Images["hate"],
+		draw.Shift(s.hateIcon.Pos(5)),
+	)
+}
+
+func (s *stage) collision() {
+
+	o := s.objs
+	for _, sym := range o.Symbols {
+		b := sym.Base()
+		if b.IsDead {
+			continue
+		}
+		if !env.PlayArea.Contains(b.Pos) {
+			b.IsDead = true
+			continue
+		}
+		if b.Timer.Count < obj.BabyTime {
+			continue
+		}
+	}
+
+	// clean dead objects
+	next := make([]obj.Symbol, 0, len(o.Symbols))
+	for _, sym := range o.Symbols {
+		if !sym.Base().IsDead {
+			next = append(next, sym)
+		}
+	}
+	o.Symbols = next
+}
 
 func (s *stage) drawPhaseText() {
 	pb := s.currentPhase().Base()
