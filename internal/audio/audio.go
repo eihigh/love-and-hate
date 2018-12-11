@@ -1,10 +1,13 @@
 package audio
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/audio"
 	"github.com/hajimehoshi/ebiten/audio/mp3"
+	"github.com/hajimehoshi/ebiten/audio/wav"
 )
 
 var (
@@ -22,6 +25,31 @@ func init() {
 	}
 }
 
+func Load() {
+
+	// BGMs
+	for _, name := range []string{
+		"Retrospect",
+	} {
+		b, err := ioutil.ReadFile(fmt.Sprintf("i/audio/%s.mp3", name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		PushBgm(name, b)
+	}
+
+	// SEs
+	for _, name := range []string{
+		"paper",
+	} {
+		b, err := ioutil.ReadFile(fmt.Sprintf("i/audio/%s.wav", name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		PushSe(name, b)
+	}
+}
+
 func Finalize() {
 	for _, p := range bgmPlayers {
 		p.Close()
@@ -31,7 +59,7 @@ func Finalize() {
 	}
 }
 
-func AddBgm(name string, b []byte) {
+func PushBgm(name string, b []byte) {
 	f := audio.BytesReadSeekCloser(b)
 	stream, err := mp3.Decode(audioContext, f)
 	if err != nil {
@@ -63,4 +91,30 @@ func PlayBgm(name string) {
 	if err := p.Rewind(); err == nil {
 		p.Play()
 	}
+}
+
+// SE
+func PushSe(name string, b []byte) {
+	f := audio.BytesReadSeekCloser(b)
+	stream, err := wav.Decode(audioContext, f)
+	if err != nil {
+		panic(err)
+	}
+	p, err := audio.NewPlayer(audioContext, stream)
+	if err != nil {
+		panic(err)
+	}
+	sePlayers[name] = p
+}
+
+func SetSeVolume(volume float64) {
+	for _, p := range sePlayers {
+		p.SetVolume(volume)
+	}
+}
+
+func PlaySe(name string) {
+	p := sePlayers[name]
+	p.Rewind()
+	p.Play()
 }

@@ -52,6 +52,14 @@ func OnDecide() bool {
 	return OnKeys(keys)
 }
 
+func OnCancel() bool {
+	keys := []ebiten.Key{
+		ebiten.KeyEscape,
+		ebiten.KeyX,
+	}
+	return OnKeys(keys)
+}
+
 func OnQuit() bool {
 	keys := []ebiten.Key{ebiten.KeyQ}
 	return OnKeys(keys)
