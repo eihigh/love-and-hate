@@ -83,11 +83,19 @@ func (p *phase01) updateMain(o *obj.Objects) {
 		c.Dir *= sio.Rot(200)
 
 		then := c.Timer.Do(20, 40, func(t sio.Timer) {
-			if t.Count%50 < 25 && t.Count%5 == 0 {
+			if t.Count%50 < 25 && t.Count%10 == 0 {
 				dir := c.Dir
 				rot := sio.Rot(8)
 				for i := 0; i < 8; i++ {
 					o.Symbols = append(o.Symbols, obj.NewLinear(c.Pos, dir, obj.SymbolLove))
+					dir *= rot
+				}
+			}
+			if t.Count%50 < 25 && t.Count%10 == 5 {
+				dir := c.Dir
+				rot := sio.Rot(8)
+				for i := 0; i < 8; i++ {
+					o.Symbols = append(o.Symbols, obj.NewLinear(c.Pos, dir, obj.SymbolHate))
 					dir *= rot
 				}
 			}

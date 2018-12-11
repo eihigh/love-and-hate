@@ -335,8 +335,7 @@ func (s *stage) updateResultUI() {
 	})
 
 	then.Once(func() {
-		phase := s.currentPhase()
-		if phase != nil {
+		if s.currentPhase() != nil {
 			ut.Switch("")
 		}
 	})
@@ -354,6 +353,9 @@ func (s *stage) updateResultUI() {
 
 func (s *stage) collision() {
 
+	pb := s.currentPhase().Base()
+	pl := &s.objs.Player
+
 	o := s.objs
 	for _, sym := range o.Symbols {
 		b := sym.Base()
@@ -366,6 +368,30 @@ func (s *stage) collision() {
 		}
 		if b.Timer.Count < obj.BabyTime {
 			continue
+		}
+
+		positive := false
+		if pb.Love.IsPositive && b.Type == obj.SymbolLove {
+			positive = true
+		}
+		if pb.Hate.IsPositive && b.Type == obj.SymbolHate {
+			positive = true
+		}
+
+		limit := 6.0
+		if positive {
+			limit = 12.0
+		}
+
+		diff := sio.AbsSq(pl.Pos - b.Pos)
+		if diff < limit*limit {
+			b.IsDead = true
+			if b.Type == obj.SymbolLove {
+				pl.Loves++
+			}
+			if b.Type == obj.SymbolHate {
+				pl.Hates++
+			}
 		}
 	}
 
