@@ -20,11 +20,6 @@ type phase01 struct {
 	cyclones obj.Movers
 }
 
-type cyclone struct {
-	pos, vec, dir complex128
-	timer         sio.Timer
-}
-
 func newPhase01() *phase01 {
 	p1 = &phase01{
 		timers: sio.TimersMap{
@@ -38,32 +33,26 @@ func newPhase01() *phase01 {
 		IsPositive: true,
 	}
 	p1.Hate = obj.Emo{
-		Target: 2,
+		Target: 6,
 		Shown:  10,
 	}
-	p1.Text = ""
+	p1.Text = "襲いかかる吐き気に顔をしかめた。\n\"なんで自分だけ？\"って。"
 	return p1
 }
 
 func (p *phase01) Update(o *obj.Objects) action.Action {
-	p.timers.UpdateAll()
 
+	p.timers.UpdateAll()
 	pt := p.timers["phase"]
-	if pt.Count > 30 {
-		p.updateMain(o)
+	if pt.Count < 30 {
+		return action.NoAction
 	}
 	if pt.Count > 800 {
 		return action.PhaseFinished
 	}
 
-	return action.NoAction
-}
-
-func (p *phase01) updateMain(o *obj.Objects) {
-
 	dg := &draw.Group{}
 	p.cyclones.Update()
-	pt := p.timers["phase"]
 
 	if pt.Count%90 == 0 {
 		p.cyclones = append(p.cyclones, &obj.Mover{
@@ -84,7 +73,7 @@ func (p *phase01) updateMain(o *obj.Objects) {
 		c.Dir *= sio.Rot(200)
 
 		then := c.Timer.Do(20, 120, func(t sio.Timer) {
-			if t.Count%2 != 0 {
+			if t.Count%5 != 0 {
 				return
 			}
 
@@ -106,6 +95,7 @@ func (p *phase01) updateMain(o *obj.Objects) {
 		})
 	}
 
+	return action.NoAction
 }
 
 func (p *phase01) Draw() {

@@ -111,8 +111,8 @@ func (s *stage) succPhase() {
 	ut := s.timers["ui"]
 	ut.Switch("result")
 
-	// vanish all objects
 	o := s.objs
+	// vanish all objects
 	for _, sym := range o.Symbols {
 		o.AppendEffect(obj.EffectRippleOnce, sym.Base().Pos)
 	}
@@ -123,6 +123,10 @@ func (s *stage) succPhase() {
 	pb := s.currentPhase().Base()
 	s.result.isLoveOk = pb.Love.IsOk(o.Player.Loves)
 	s.result.isHateOk = pb.Hate.IsOk(o.Player.Hates)
+
+	// reset count
+	o.Player.Loves = 0
+	o.Player.Hates = 0
 
 	// 結果分岐
 	if s.result.isLoveOk && s.result.isHateOk {
