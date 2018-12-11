@@ -15,8 +15,9 @@ type Objects struct {
 	Effects []Effect
 
 	Player struct {
-		Pos          complex128
-		Loves, Hates int
+		Pos              complex128
+		LastLoves, Loves int
+		LastHates, Hates int
 	}
 }
 

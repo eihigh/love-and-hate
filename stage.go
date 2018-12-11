@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/eihigh/love-and-hate/internal/action"
+	"github.com/eihigh/love-and-hate/internal/audio"
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/images"
@@ -359,6 +360,8 @@ func (s *stage) collision() {
 
 	pb := s.currentPhase().Base()
 	pl := &s.objs.Player
+	pl.LastLoves = pl.Loves
+	pl.LastHates = pl.Hates
 
 	o := s.objs
 	for _, sym := range o.Symbols {
@@ -407,6 +410,11 @@ func (s *stage) collision() {
 		}
 	}
 	o.Symbols = next
+
+	// play sounds
+	if (pl.Loves != pl.LastLoves && !pb.Love.IsPositive) || (pl.Hates != pl.LastHates && !pb.Hate.IsPositive) {
+		audio.PlaySe("buzzer")
+	}
 }
 
 func (s *stage) drawPhaseText() {

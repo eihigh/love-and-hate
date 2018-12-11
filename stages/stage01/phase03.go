@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/eihigh/love-and-hate/internal/action"
+	"github.com/eihigh/love-and-hate/internal/audio"
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/sio"
 )
@@ -27,15 +28,16 @@ func newPhase03() *phase03 {
 		grv: complex(0, -0.02),
 	}
 	p3.Love = obj.Emo{
-		Target:     2,
-		Shown:      10,
-		IsPositive: true,
+		Target: 2,
+		Shown:  10,
 	}
 	p3.Hate = obj.Emo{
 		Target: 6,
 		Shown:  10,
 	}
 	p3.Text = "襲いかかる吐き気に顔をしかめた。\n二度と顔を見せるな。気色悪い。"
+
+	audio.PlayBgm("Retrospect")
 	return p3
 }
 

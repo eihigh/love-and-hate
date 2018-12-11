@@ -41,6 +41,7 @@ func Load() {
 	// SEs
 	for _, name := range []string{
 		"paper",
+		"buzzer",
 	} {
 		b, err := ioutil.ReadFile(fmt.Sprintf("i/audio/%s.wav", name))
 		if err != nil {
