@@ -33,8 +33,9 @@ func newPhase01() *phase01 {
 		cyclones: obj.Movers{},
 	}
 	p1.Love = obj.Emo{
-		Target: 2,
-		Shown:  10,
+		Target:     2,
+		Shown:      10,
+		IsPositive: true,
 	}
 	p1.Hate = obj.Emo{
 		Target: 2,
@@ -51,7 +52,7 @@ func (p *phase01) Update(o *obj.Objects) action.Action {
 	if pt.Count > 30 {
 		p.updateMain(o)
 	}
-	if pt.Count > 400 {
+	if pt.Count > 800 {
 		return action.PhaseFinished
 	}
 
@@ -82,22 +83,21 @@ func (p *phase01) updateMain(o *obj.Objects) {
 
 		c.Dir *= sio.Rot(200)
 
-		then := c.Timer.Do(20, 40, func(t sio.Timer) {
-			if t.Count%50 < 25 && t.Count%10 == 0 {
-				dir := c.Dir
-				rot := sio.Rot(8)
-				for i := 0; i < 8; i++ {
-					o.Symbols = append(o.Symbols, obj.NewLinear(c.Pos, dir, obj.SymbolLove))
-					dir *= rot
-				}
+		then := c.Timer.Do(20, 120, func(t sio.Timer) {
+			if t.Count%2 != 0 {
+				return
 			}
-			if t.Count%50 < 25 && t.Count%10 == 5 {
-				dir := c.Dir
-				rot := sio.Rot(8)
-				for i := 0; i < 8; i++ {
+
+			dir := c.Dir
+			rot := sio.Rot(8)
+			for i := 0; i < 8; i++ {
+				t.Do(0, 25, func(sio.Timer) {
+					o.Symbols = append(o.Symbols, obj.NewLinear(c.Pos, dir, obj.SymbolLove))
+				})
+				t.Do(50, 75, func(sio.Timer) {
 					o.Symbols = append(o.Symbols, obj.NewLinear(c.Pos, dir, obj.SymbolHate))
-					dir *= rot
-				}
+				})
+				dir *= rot
 			}
 		})
 
