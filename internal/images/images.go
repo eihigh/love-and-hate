@@ -1,9 +1,29 @@
 package images
 
-import "github.com/hajimehoshi/ebiten"
+import (
+	"fmt"
+	"log"
 
-var (
-	Images map[string]*ebiten.Image
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
-func Load() {}
+var (
+	Images = map[string]*ebiten.Image{}
+)
+
+func Load() {
+	for _, name := range []string{
+		"love",
+		"hate",
+		"player",
+		"ripple",
+		"cross",
+	} {
+		i, _, err := ebitenutil.NewImageFromFile(fmt.Sprintf("i/img/%s.png", name), ebiten.FilterDefault)
+		if err != nil {
+			log.Fatal(err)
+		}
+		Images[name] = i
+	}
+}

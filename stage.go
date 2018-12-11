@@ -8,12 +8,15 @@ import (
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/images"
 	"github.com/eihigh/love-and-hate/internal/obj"
+	"github.com/eihigh/love-and-hate/stages/stage01"
 	"github.com/eihigh/sio"
 	"github.com/fogleman/ease"
 )
 
 var (
-	phaseLists = map[int]func() []obj.Phase{}
+	phaseLists = map[int]func() []obj.Phase{
+		1: stage01.NewPhases,
+	}
 )
 
 type stage struct {

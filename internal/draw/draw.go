@@ -61,11 +61,7 @@ func (g *Group) DrawImage(src *ebiten.Image, fns ...OptionFn) {
 	op.GeoM = g.geoM
 	op.ColorM = g.ColorM
 	op.CompositeMode = g.Mode
-	if g.Dst == nil {
-		Screen.DrawImage(src, op)
-	} else {
-		g.Dst.DrawImage(src, op)
-	}
+	g.dst().DrawImage(src, op)
 }
 
 func (g *Group) DrawSprite(src *ebiten.Image, fns ...OptionFn) {
@@ -81,11 +77,7 @@ func (g *Group) DrawSprite(src *ebiten.Image, fns ...OptionFn) {
 	op.GeoM = g.geoM
 	op.ColorM = g.ColorM
 	op.CompositeMode = g.Mode
-	if g.Dst == nil {
-		Screen.DrawImage(src, op)
-	} else {
-		g.Dst.DrawImage(src, op)
-	}
+	g.dst().DrawImage(src, op)
 }
 
 func (g *Group) DrawText(str string, re *sio.Rect, clr color.Color) {
@@ -93,7 +85,7 @@ func (g *Group) DrawText(str string, re *sio.Rect, clr color.Color) {
 	ofsY := int(sio.DefaultEmHeight)    // ditto
 	rows := sio.TextRows(str, re)
 	for _, row := range rows {
-		text.Draw(g.Dst, row.Text, fface, row.X+ofsX, row.Y+ofsY, clr)
+		text.Draw(g.dst(), row.Text, fface, row.X+ofsX, row.Y+ofsY, clr)
 	}
 }
 
@@ -104,7 +96,7 @@ func (g *Group) DrawRect(re *sio.Rect, clr color.Color) {
 	}
 
 	top.CompositeMode = g.Mode
-	g.Dst.DrawTriangles(vs, indices, emptyImage, top)
+	g.dst().DrawTriangles(vs, indices, emptyImage, top)
 }
 
 func (g *Group) DrawBorder(re *sio.Rect, clr color.Color) {
@@ -117,7 +109,7 @@ func (g *Group) DrawBorder(re *sio.Rect, clr color.Color) {
 	}
 
 	top.CompositeMode = g.Mode
-	g.Dst.DrawTriangles(vs, indices, emptyImage, top)
+	g.dst().DrawTriangles(vs, indices, emptyImage, top)
 }
 
 func corners(re *sio.Rect, clr color.Color) []ebiten.Vertex {
@@ -149,4 +141,11 @@ func corners(re *sio.Rect, clr color.Color) []ebiten.Vertex {
 	}
 
 	return vs
+}
+
+func (g *Group) dst() *ebiten.Image {
+	if g.Dst == nil {
+		return Screen
+	}
+	return g.Dst
 }
