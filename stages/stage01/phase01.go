@@ -48,17 +48,11 @@ func (p *phase01) Update(o *obj.Objects) action.Action {
 	p.timers.UpdateAll()
 
 	pt := p.timers["phase"]
-	switch pt.State {
-	case "main":
+	if pt.Count > 30 {
 		p.updateMain(o)
-		if pt.Count > 400 {
-			return action.PhaseFinished
-		}
-
-	default:
-		if pt.Count > 30 {
-			pt.Switch("main")
-		}
+	}
+	if pt.Count > 400 {
+		return action.PhaseFinished
 	}
 
 	return action.NoAction

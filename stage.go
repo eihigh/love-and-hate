@@ -7,6 +7,7 @@ import (
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/images"
+	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/love-and-hate/stages/stage01"
 	"github.com/eihigh/sio"
@@ -197,9 +198,118 @@ func (s *stage) updateObjects() {
 	o.Effects = next
 }
 
-func (s *stage) updatePlayer() {}
+func (s *stage) updatePlayer() {
 
-func (s *stage) updateUI() {}
+	o := s.objs
+	r, l, u, d := input.OnRight(), input.OnLeft(), input.OnUp(), input.OnDown()
+	if r && l {
+		r, l = false, false
+	}
+	if u && d {
+		u, d = false, false
+	}
+
+	// 1直角=1.0
+	a := 0.0
+	spd := 2.0 + 0i
+	if r {
+		if u {
+			a = -0.5
+		} else if d {
+			a = 0.5
+		} else {
+			a = 0.0
+		}
+	} else if l {
+		if u {
+			a = -1.5
+		} else if d {
+			a = 1.5
+		} else {
+			a = 2.0
+		}
+	} else if u {
+		a = -1.0
+	} else if d {
+		a = 1.0
+	} else {
+		spd = 0
+	}
+
+	pos := o.Player.Pos + sio.UnitVector(a)*spd
+	x, y := real(pos), imag(pos)
+	if x < env.View.X {
+		x = env.View.X
+	}
+	if y < env.View.Y {
+		y = env.View.Y
+	}
+	if x > env.View.X+env.View.W {
+		x = env.View.X + env.View.W
+	}
+	if y > env.View.Y+env.View.H {
+		y = env.View.Y + env.View.H
+	}
+	o.Player.Pos = complex(x, y)
+}
+
+func (s *stage) updateUI() {
+
+	ut := s.timers["ui"]
+	if ut.State == "result" {
+		s.updateResultUI()
+		return
+	}
+
+	dg := &draw.Group{}
+	phase := s.currentPhase()
+	pb := phase.Base()
+	pl := &s.objs.Player
+
+	// draw bars
+	scale := 1.0
+	ut.Do(0, 60, func(t sio.Timer) {
+		scale = ease.OutQuad(t.Ratio())
+	})
+
+	// love
+	bk, fr := pb.Love.Ratios(pl.Loves)
+	bc, fc := pb.Love.Colors()
+	bar := s.loveBar.Clone(6, 6).Scale(bk*scale, 1)
+	dg.DrawRect(bar, bc)
+	bar = s.loveBar.Clone(6, 6).Scale(fr, 1)
+	dg.DrawRect(bar, fc)
+
+	// hate
+	bk, fr = pb.Hate.Ratios(pl.Hates)
+	bc, fc = pb.Hate.Colors()
+	bar = s.hateBar.Clone(4, 4).Scale(bk*scale, 1)
+	dg.DrawRect(bar, bc)
+	bar = s.hateBar.Clone(4, 4).Scale(fr, 1)
+	dg.DrawRect(bar, fc)
+
+	// love icon
+	alpha := 1.0
+	if pb.Love.IsPoor(pl.Loves) {
+		alpha = 1 - 0.5*sio.UWave(ut.RatioTo(40))
+	}
+	dg.DrawSprite(
+		images.Images["love"],
+		draw.Shift(s.loveIcon.Pos(5)),
+		draw.Paint(1, 1, 1, alpha),
+	)
+
+	// hate icon
+	alpha = 1.0
+	if pb.Hate.IsPoor(pl.Hates) {
+		alpha = 1 - 0.5*sio.UWave(ut.RatioTo(40))
+	}
+	dg.DrawSprite(
+		images.Images["hate"],
+		draw.Shift(s.hateIcon.Pos(5)),
+		draw.Paint(1, 1, 1, alpha),
+	)
+}
 
 func (s *stage) updateResultUI() {
 
