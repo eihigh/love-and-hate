@@ -1,31 +1,58 @@
 package main
 
 import (
-	"image/color"
-
 	"github.com/eihigh/love-and-hate/internal/input"
-	"github.com/eihigh/love-and-hate/internal/text"
 	"github.com/eihigh/sio"
+	"github.com/fogleman/ease"
 )
 
-type title struct {
-	state  sio.Stm
-	cursor int
-	level  int
+type menuItem struct {
+	action action
+	rect   *sio.Rect
+}
 
-	logo *sio.TextBox
+type title struct {
+	logo *sio.Rect
+	menu []*menuItem
+
+	cursor struct {
+		a, b complex128
+		item int
+	}
+
+	workers sio.Workers
 }
 
 func newTitle() *title {
-	t := &title{}
-	r := view.Clone(8, 8).Scale(1, 0.7)
-	t.logo = r.NewTextBox("LOVE AND HATE\n\nPUSH Z", 5)
+
+	// make layouts
+	mr := view.Clone(5, 8).Scale(0.5, 0.5)
+	mr.H = 16
+	mr0 := mr.Clone(8, 8).Drive(5)
+	mr1 := mr0.Clone(2, 8).Drive(5)
+
+	// make instance
+	t := &title{
+		workers: sio.Workers{
+			"cursor": &sio.Worker{},
+		},
+		logo: view.Clone(8, 8).Scale(1, 0.7).Drive(5),
+		menu: []*menuItem{
+			{
+				action: titleNewGame,
+				rect:   mr0,
+			},
+			{
+				action: titleHowTo,
+				rect:   mr1,
+			},
+		},
+	}
+
 	return t
 }
 
 func (t *title) reuse() {
-	t.state.Rebirth()
-	// keeps cursor data
 }
 
 func (t *title) update() action {
@@ -35,9 +62,15 @@ func (t *title) update() action {
 	// 	bd(tb.Rect)
 	// 	text.Draw(scr, tb, color.White)
 
-	text.Draw(scr, t.logo, color.White)
-
-	t.state.Update()
+	var pos complex128
+	cw := t.workers["cursor"]
+	switch cw.State {
+	case "moving":
+		pos = t.cursor.a + t.cursor.b*ease.OutQuad(cw.T(20))
+		if cw.Count > 20 {
+			cw.Switch("")
+		}
+	}
 
 	// scan
 	if input.OnDecide() {
