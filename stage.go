@@ -415,6 +415,9 @@ func (s *stage) collision() {
 	if (pl.Loves != pl.LastLoves && !pb.Love.IsPositive) || (pl.Hates != pl.LastHates && !pb.Hate.IsPositive) {
 		audio.PlaySe("buzzer")
 	}
+	if (pl.Loves != pl.LastLoves && pb.Love.IsPositive) || (pl.Hates != pl.LastHates && pb.Hate.IsPositive) {
+		audio.PlaySe("drop")
+	}
 }
 
 func (s *stage) drawPhaseText() {
