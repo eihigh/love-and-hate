@@ -8,6 +8,7 @@ import (
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/sio"
 	"github.com/fogleman/ease"
+	"github.com/hajimehoshi/ebiten"
 )
 
 type menuItem struct {
@@ -29,6 +30,10 @@ type title struct {
 	cursor cursor
 
 	timers sio.TimersMap
+
+	// children
+	top    *titleTop
+	stages *titleStages
 }
 
 func newTitle() *title {
@@ -43,12 +48,15 @@ func newTitle() *title {
 	// make instance
 	t := &title{
 		timers: sio.TimersMap{
+			"title": &sio.Timer{
+				State: "top",
+			},
 			"cursor": &sio.Timer{},
 		},
 
 		cursor: cursor{
 			index: 0,
-			box:   sio.NewRect(7, 0, 0, 20, 20),
+			box:   sio.NewRect(5, 0, 0, 20, 20),
 			a:     cp,
 			b:     cp,
 		},
@@ -73,6 +81,18 @@ func newTitle() *title {
 func (t *title) update() action.Action {
 
 	t.timers.UpdateAll()
+	switch t.timers["title"].State {
+	case "top":
+		return t.updateTop()
+	case "stage select":
+	case "how to play":
+	}
+
+	return action.NoAction
+}
+
+func (t *title) updateTop() action.Action {
+
 	dg := &draw.Group{}
 
 	// draw menu
@@ -117,5 +137,85 @@ func (t *title) update() action.Action {
 		return t.menus[t.cursor.index].action
 	}
 
+	return action.NoAction
+}
+
+func (t *title) updateStages() action.Action {
+	a := t.stages.update()
+
+	switch a {
+	case action.Cancel:
+		t.timers["stages"].Switch("out")
+		t.timers["top"].Switch("in")
+		t.top = newTitleTop()
+
+	case action.NewGame:
+		t.timers["title"].Switch("leave")
+	}
+
+	return action.NoAction
+}
+
+// ============================================================
+//  タイトルトップ画面
+// ============================================================
+
+type titleTop struct{}
+
+func newTitleTop() *titleTop {
+	return &titleTop{}
+}
+
+// ============================================================
+//  ステージ選択画面
+// ============================================================
+
+type titleStages struct {
+	menus  []*menuItem
+	cursor cursor
+	layer  *ebiten.Image
+	timers sio.TimersMap
+}
+
+func newTitleStages() *titleStages {
+
+	// layout
+	mr := env.View.Clone(5, 5).Resize(-100, -40)
+	mr0 := mr.Clone(8, 8).SetSize(-1, 20).Drive(5)
+	mr1 := mr0.Clone(2, 8).Drive(5)
+	mr2 := mr1.Clone(2, 8).Drive(5)
+	mr3 := mr2.Clone(2, 8).Drive(5)
+
+	layer, _ := ebiten.NewImage(320, 240, ebiten.FilterDefault)
+
+	return &titleStages{
+		menus: []*menuItem{
+			{
+				action.NewGame,
+				"CASE 0. aiueo",
+				mr0,
+			},
+			{
+				action.NewGame,
+				"CASE 1. aiueo",
+				mr1,
+			},
+			{
+				action.NewGame,
+				"CASE 2. aiueo",
+				mr2,
+			},
+			{
+				action.NewGame,
+				"CASE 3. aiueo",
+				mr3,
+			},
+		},
+		layer: layer,
+	}
+}
+
+func (t *titleStages) update() action.Action {
+	t.timers.UpdateAll()
 	return action.NoAction
 }

@@ -5,6 +5,7 @@ type Action int
 // Action definitions
 const (
 	NoAction Action = iota
+	Cancel
 
 	// from title
 	NewGame

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/eihigh/love-and-hate/internal/action"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/images"
 	"github.com/eihigh/love-and-hate/internal/input"
@@ -50,7 +51,12 @@ func (g *game) update() error {
 }
 
 func (g *game) updateTitle() {
-	g.title.update()
+	a := g.title.update()
+
+	switch a {
+	case action.NewGame:
+	case action.HowTo:
+	}
 }
 
 func (g *game) updatePlay() {
