@@ -8,6 +8,8 @@ const (
 	Cancel
 
 	// from title
+	ToStages
+	ToHowTo
 	NewGame
 	HowTo
 

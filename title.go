@@ -80,6 +80,16 @@ func newTitle() *title {
 
 func (t *title) update() action.Action {
 
+	dg := &draw.Group{}
+	dg.DrawImage(
+		t.top.layer,
+		draw.Paint(1, 1, 1, 0.5),
+	)
+	dg.DrawImage(
+		t.stages.layer,
+		draw.Paint(1, 1, 1, 0.5),
+	)
+
 	t.timers.UpdateAll()
 	switch t.timers["title"].State {
 	case "top":
@@ -160,10 +170,52 @@ func (t *title) updateStages() action.Action {
 //  タイトルトップ画面
 // ============================================================
 
-type titleTop struct{}
+type titleTop struct {
+	layer  *ebiten.Image
+	timers sio.TimersMap
+	cursor cursor
+	menus  []*menuItem
+	logo   *sio.Rect
+}
 
 func newTitleTop() *titleTop {
-	return &titleTop{}
+
+	// layout
+	mr := env.View.Clone(5, 8).Scale(0.5, 0.4)
+	mr0 := mr.Clone(8, 8).SetSize(-1, 20).Drive(5)
+	mr1 := mr0.Clone(2, 8).Drive(5)
+	x, y := mr0.Pos(4)
+	cp := complex(x, y)
+
+	return &titleTop{
+		timers: sio.TimersMap{
+			"cursor": &sio.Timer{},
+		},
+
+		cursor: cursor{
+			index: 0,
+			box:   sio.NewRect(5, 0, 0, 20, 20),
+			a:     cp,
+			b:     cp,
+		},
+
+		menus: []*menuItem{
+			{
+				action.ToStages,
+				"START",
+				mr0,
+			},
+			{
+				action.ToHowTo,
+				"HOW TO PLAY",
+				mr1,
+			},
+		},
+	}
+}
+
+func (t *titleTop) update() action.Action {
+	return action.NoAction
 }
 
 // ============================================================
@@ -171,10 +223,10 @@ func newTitleTop() *titleTop {
 // ============================================================
 
 type titleStages struct {
-	menus  []*menuItem
-	cursor cursor
 	layer  *ebiten.Image
 	timers sio.TimersMap
+	menus  []*menuItem
+	cursor cursor
 }
 
 func newTitleStages() *titleStages {
