@@ -421,7 +421,6 @@ func (s *stage) collision() {
 }
 
 func (s *stage) drawPhaseText() {
-	return // hidden phase text
 	pb := s.currentPhase().Base()
 	st := s.timers["stage"]
 	dg := &draw.Group{}
@@ -429,13 +428,13 @@ func (s *stage) drawPhaseText() {
 	st.Do(0, 240, func(t sio.Timer) {
 		y := 0.0
 		alpha := 1.0
-		then := st.Do(0, 80, func(t sio.Timer) {
+		t.Do(0, 80, func(t sio.Timer) {
 			r := t.Ratio()
 			y = 30 * (1 - ease.OutQuad(r))
 			alpha = r
 		})
 
-		then.Do(80, 160, func(t sio.Timer) {
+		t.Do(-80, 0, func(t sio.Timer) {
 			r := t.Ratio()
 			y = -30 * ease.InQuad(r)
 			alpha = 1 - r

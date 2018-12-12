@@ -1,10 +1,8 @@
 package main
 
 import (
-	"io"
 	"log"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/eihigh/love-and-hate/internal/audio"
@@ -19,16 +17,16 @@ var g *game
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	if env.DebugMode {
-		logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			panic("cannot open test.log: " + err.Error())
-		}
-		defer logfile.Close()
-		log.SetOutput(io.MultiWriter(logfile, os.Stdout))
-		log.SetFlags(log.Ldate | log.Ltime)
-		log.Println("logging start")
-	}
+	// if env.DebugMode {
+	// 	logfile, err := os.OpenFile("./test.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	// 	if err != nil {
+	// 		panic("cannot open test.log: " + err.Error())
+	// 	}
+	// 	defer logfile.Close()
+	// 	log.SetOutput(io.MultiWriter(logfile, os.Stdout))
+	// 	log.SetFlags(log.Ldate | log.Ltime)
+	// 	log.Println("logging start")
+	// }
 
 	audio.Load()
 	audio.SetBgmVolume(0.5)

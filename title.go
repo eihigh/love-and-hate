@@ -1,6 +1,8 @@
 package main
 
 import (
+	"image/color"
+
 	"github.com/eihigh/love-and-hate/internal/action"
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
@@ -24,11 +26,6 @@ type cursor struct {
 }
 
 type title struct {
-	logo  *sio.Rect
-	menus []*menuItem
-
-	cursor cursor
-
 	timers sio.TimersMap
 
 	// children
@@ -37,133 +34,146 @@ type title struct {
 }
 
 func newTitle() *title {
+	return &title{
 
-	// make layouts
-	mr := env.View.Clone(5, 8).Scale(0.5, 0.5)
-	mr0 := mr.Clone(8, 8).SetSize(-1, 20).Drive(5)
-	mr1 := mr0.Clone(2, 8).Drive(5)
-	x, y := mr0.Pos(4)
-	cp := complex(x, y)
-
-	// make instance
-	t := &title{
 		timers: sio.TimersMap{
-			"title": &sio.Timer{
-				State: "top",
+			"top": &sio.Timer{
+				State: "main",
 			},
-			"cursor": &sio.Timer{},
+			"stage select": &sio.Timer{},
+			"how to play":  &sio.Timer{},
 		},
 
-		cursor: cursor{
-			index: 0,
-			box:   sio.NewRect(5, 0, 0, 20, 20),
-			a:     cp,
-			b:     cp,
-		},
-
-		menus: []*menuItem{
-			{
-				action.NewGame,
-				"NEW GAME",
-				mr0,
-			},
-			{
-				action.HowTo,
-				"HOW TO PLAY",
-				mr1,
-			},
-		},
+		top:    newTitleTop(),
+		stages: newTitleStages(),
 	}
-
-	return t
 }
 
 func (t *title) update() action.Action {
 
 	dg := &draw.Group{}
-	dg.DrawImage(
-		t.top.layer,
-		draw.Paint(1, 1, 1, 0.5),
-	)
-	dg.DrawImage(
-		t.stages.layer,
-		draw.Paint(1, 1, 1, 0.5),
-	)
-
 	t.timers.UpdateAll()
-	switch t.timers["title"].State {
-	case "top":
-		return t.updateTop()
-	case "stage select":
-	case "how to play":
+
+	tt := t.timers["top"]
+	st := t.timers["stage select"]
+
+	if tt.State != "" {
+		t.top.update()
+		x, a := updateLayerTimer(tt)
+		dg.DrawImage(t.top.layer, draw.Shift(x, 0), draw.Paint(1, 1, 1, a))
+
+		// scan
+		if tt.State == "main" && input.OnDecide() {
+			tt.Switch("out")
+			st.Switch("in")
+		}
+	}
+
+	if st.State != "" {
+		t.updateStages()
+		x, a := updateLayerTimer(st)
+		dg.DrawImage(t.stages.layer, draw.Shift(x, 0), draw.Paint(1, 1, 1, a))
 	}
 
 	return action.NoAction
 }
 
-func (t *title) updateTop() action.Action {
+func updateLayerTimer(t *sio.Timer) (x, alpha float64) {
+	dur := 30
+	dist := 50.0
+	r := t.RatioTo(dur)
 
-	dg := &draw.Group{}
+	switch t.State {
+	case "main":
+		return 0, 1
 
-	// draw menu
-	for _, m := range t.menus {
-		dg.DrawText(m.text, m.rect, obj.White)
-	}
-
-	// draw cursor
-	ct := t.timers["cursor"]
-	if ct.State == "" {
-		x, y := sio.Ctof(t.cursor.a)
-		t.cursor.box.Move(x, y)
-	}
-
-	if ct.State == "moving" {
-		then := ct.Do(0, 10, func(tm sio.Timer) {
-			pos := t.cursor.a + (t.cursor.b-t.cursor.a)*complex(ease.OutQuad(tm.Ratio()), 0)
-			t.cursor.box.Move(sio.Ctof(pos))
+	case "in":
+		then := t.Do(0, dur, func(t sio.Timer) {
+			x = -dist * (1 - ease.OutQuad(r))
+			alpha = r
 		})
 		then.Once(func() {
-			t.cursor.a = t.cursor.b
-			ct.Switch("")
+			t.Switch("main")
+			x, alpha = 0, 1
 		})
+
+	case "out":
+		then := t.Do(0, dur, func(t sio.Timer) {
+			x = dist * ease.InQuad(r)
+			alpha = 1 - r
+		})
+		then.Once(func() {
+			t.Switch("")
+			x, alpha = dist, 0
+		})
+
+	default:
+		return dist, 0
 	}
 
-	// move cursor
-	if input.OnUp() && t.cursor.index > 0 {
-		t.cursor.index--
-		ct.Switch("moving")
-	}
-	if input.OnDown() && t.cursor.index < len(t.menus)-1 {
-		t.cursor.index++
-		ct.Switch("moving")
-	}
-	x, y := t.menus[t.cursor.index].rect.Pos(4)
-	t.cursor.b = complex(x, y)
-
-	dg.DrawText("--", t.cursor.box, obj.White)
-
-	// do action
-	if input.OnDecide() {
-		return t.menus[t.cursor.index].action
-	}
-
-	return action.NoAction
+	return
 }
 
-func (t *title) updateStages() action.Action {
-	a := t.stages.update()
+func (t *title) updateTop() {
 
-	switch a {
-	case action.Cancel:
-		t.timers["stages"].Switch("out")
-		t.timers["top"].Switch("in")
-		t.top = newTitleTop()
+	// dg := &draw.Group{}
+	//
+	// // draw menu
+	// for _, m := range t.menus {
+	// 	dg.DrawText(m.text, m.rect, obj.White)
+	// }
+	//
+	// // draw cursor
+	// ct := t.timers["cursor"]
+	// if ct.State == "" {
+	// 	x, y := sio.Ctof(t.cursor.a)
+	// 	t.cursor.box.Move(x, y)
+	// }
+	//
+	// if ct.State == "moving" {
+	// 	then := ct.Do(0, 10, func(tm sio.Timer) {
+	// 		pos := t.cursor.a + (t.cursor.b-t.cursor.a)*complex(ease.OutQuad(tm.Ratio()), 0)
+	// 		t.cursor.box.Move(sio.Ctof(pos))
+	// 	})
+	// 	then.Once(func() {
+	// 		t.cursor.a = t.cursor.b
+	// 		ct.Switch("")
+	// 	})
+	// }
+	//
+	// // move cursor
+	// if input.OnUp() && t.cursor.index > 0 {
+	// 	t.cursor.index--
+	// 	ct.Switch("moving")
+	// }
+	// if input.OnDown() && t.cursor.index < len(t.menus)-1 {
+	// 	t.cursor.index++
+	// 	ct.Switch("moving")
+	// }
+	// x, y := t.menus[t.cursor.index].rect.Pos(4)
+	// t.cursor.b = complex(x, y)
+	//
+	// dg.DrawText("--", t.cursor.box, obj.White)
+	//
+	// // do action
+	// if input.OnDecide() {
+	// 	return t.menus[t.cursor.index].action
+	// }
+}
 
-	case action.NewGame:
-		t.timers["title"].Switch("leave")
+func (t *title) updateStages() {
+
+	tt := t.timers["top"]
+	st := t.timers["stage select"]
+
+	if st.State == "main" {
+		if input.OnCancel() {
+			st.Switch("out")
+			tt.Switch("in")
+		}
 	}
 
-	return action.NoAction
+	t.stages.update()
 }
 
 // ============================================================
@@ -186,11 +196,19 @@ func newTitleTop() *titleTop {
 	mr1 := mr0.Clone(2, 8).Drive(5)
 	x, y := mr0.Pos(4)
 	cp := complex(x, y)
+	layer, _ := ebiten.NewImage(320, 240, ebiten.FilterDefault)
 
 	return &titleTop{
+		layer: layer,
+
 		timers: sio.TimersMap{
 			"cursor": &sio.Timer{},
+			"logo": &sio.Timer{
+				State: "start",
+			},
 		},
+
+		logo: env.View.Clone(8, 8).Scale(1, 0.6).Drive(5),
 
 		cursor: cursor{
 			index: 0,
@@ -214,8 +232,33 @@ func newTitleTop() *titleTop {
 	}
 }
 
-func (t *titleTop) update() action.Action {
-	return action.NoAction
+func (t *titleTop) update() {
+	t.timers.UpdateAll()
+	t.layer.Clear()
+	dg := &draw.Group{Dst: t.layer}
+
+	// draw title logo
+	lt := t.timers["logo"]
+	alpha := 0.0
+	if lt.State == "start" {
+		then := lt.Do(0, 40, func(t sio.Timer) {
+			if t.Count%20 < 7 {
+				alpha = 0.4
+			}
+		})
+		then = then.Do(0, 35, func(t sio.Timer) {
+			if t.Count%15 < 7 {
+				alpha = 0.8
+			}
+		})
+		then.Once(func() {
+			lt.State = "main"
+		})
+	} else {
+		alpha = 1
+	}
+
+	dg.DrawText("LOVE AND HATE", t.logo, color.Alpha{uint8(255 * alpha)})
 }
 
 // ============================================================
@@ -267,7 +310,12 @@ func newTitleStages() *titleStages {
 	}
 }
 
-func (t *titleStages) update() action.Action {
+func (t *titleStages) update() {
 	t.timers.UpdateAll()
-	return action.NoAction
+	t.layer.Clear()
+	dg := &draw.Group{Dst: t.layer}
+
+	for _, menu := range t.menus {
+		dg.DrawText(menu.text, menu.rect, obj.White)
+	}
 }

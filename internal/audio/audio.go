@@ -47,7 +47,6 @@ func Load() {
 
 	// SEs
 	for _, name := range []string{
-		"paper",
 		"buzzer",
 		"drop",
 	} {

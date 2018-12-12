@@ -24,7 +24,7 @@ func newGame() *game {
 	return &game{
 		scene: "title",
 		title: newTitle(),
-		play:  newPlay(1), // 1 is for debug TODO
+		play:  nil, // 1 is for debug TODO
 	}
 }
 
