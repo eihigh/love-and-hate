@@ -18,3 +18,5 @@
 *.mp3
 *.wav
 *.log
+
+binary.go

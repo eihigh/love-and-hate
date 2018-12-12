@@ -421,6 +421,7 @@ func (s *stage) collision() {
 }
 
 func (s *stage) drawPhaseText() {
+	return // hidden phase text
 	pb := s.currentPhase().Base()
 	st := s.timers["stage"]
 	dg := &draw.Group{}

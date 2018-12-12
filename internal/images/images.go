@@ -2,10 +2,13 @@ package images
 
 import (
 	"fmt"
+	"image"
 	"log"
 
+	_ "image/png"
+
+	"github.com/eihigh/love-and-hate/internal/assets"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 var (
@@ -20,10 +23,17 @@ func Load() {
 		"ripple",
 		"cross",
 	} {
-		i, _, err := ebitenutil.NewImageFromFile(fmt.Sprintf("i/img/%s.png", name), ebiten.FilterDefault)
+		f, err := assets.Assets.Open(fmt.Sprintf("img/%s.png", name))
 		if err != nil {
 			log.Fatal(err)
 		}
-		Images[name] = i
+		defer f.Close()
+
+		i, _, err := image.Decode(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		Images[name], _ = ebiten.NewImageFromImage(i, ebiten.FilterDefault)
 	}
 }

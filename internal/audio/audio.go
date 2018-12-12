@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/eihigh/love-and-hate/internal/assets"
 	"github.com/hajimehoshi/ebiten/audio"
 	"github.com/hajimehoshi/ebiten/audio/mp3"
 	"github.com/hajimehoshi/ebiten/audio/wav"
@@ -31,7 +32,13 @@ func Load() {
 	for _, name := range []string{
 		"Retrospect",
 	} {
-		b, err := ioutil.ReadFile(fmt.Sprintf("i/audio/%s.mp3", name))
+		f, err := assets.Assets.Open(fmt.Sprintf("audio/%s.mp3", name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		b, err := ioutil.ReadAll(f)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -44,7 +51,13 @@ func Load() {
 		"buzzer",
 		"drop",
 	} {
-		b, err := ioutil.ReadFile(fmt.Sprintf("i/audio/%s.wav", name))
+		f, err := assets.Assets.Open(fmt.Sprintf("audio/%s.wav", name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		b, err := ioutil.ReadAll(f)
 		if err != nil {
 			log.Fatal(err)
 		}
