@@ -12,7 +12,8 @@ type game struct {
 	scene string
 
 	// scene変数
-	play *play
+	title *title
+	play  *play
 }
 
 func newGame() *game {
@@ -20,7 +21,8 @@ func newGame() *game {
 	images.Load()
 
 	return &game{
-		scene: "play",
+		scene: "title",
+		title: newTitle(),
 		play:  newPlay(1), // 1 is for debug TODO
 	}
 }
@@ -36,7 +38,7 @@ func (g *game) update() error {
 
 	switch g.scene {
 	case "title":
-		// TODO
+		g.updateTitle()
 
 	case "play":
 		g.updatePlay()
@@ -45,6 +47,10 @@ func (g *game) update() error {
 	}
 
 	return nil
+}
+
+func (g *game) updateTitle() {
+	g.title.update()
 }
 
 func (g *game) updatePlay() {
