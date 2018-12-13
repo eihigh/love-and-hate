@@ -20,9 +20,9 @@ type menuItem struct {
 }
 
 type cursor struct {
-	a, b  complex128
-	box   *sio.Rect
-	index int
+	a, b, pos complex128
+	box       *sio.Rect
+	index     int
 }
 
 type title struct {
@@ -280,10 +280,16 @@ func newTitleStages() *titleStages {
 	mr1 := mr0.Clone(2, 8).Drive(5)
 	mr2 := mr1.Clone(2, 8).Drive(5)
 	mr3 := mr2.Clone(2, 8).Drive(5)
+	x, y := mr0.Pos(4)
+	cp := complex(x, y)
 
 	layer, _ := ebiten.NewImage(320, 240, ebiten.FilterDefault)
 
 	return &titleStages{
+		timers: sio.TimersMap{
+			"cursor": &sio.Timer{},
+		},
+
 		menus: []*menuItem{
 			{
 				action.NewGame,
@@ -306,6 +312,13 @@ func newTitleStages() *titleStages {
 				mr3,
 			},
 		},
+		cursor: cursor{
+			index: 0,
+			box:   sio.NewRect(6, 0, 0, 20, 20),
+			a:     cp,
+			b:     cp,
+			pos:   cp,
+		},
 		layer: layer,
 	}
 }
@@ -315,7 +328,39 @@ func (t *titleStages) update() {
 	t.layer.Clear()
 	dg := &draw.Group{Dst: t.layer}
 
+	// draw menu
 	for _, menu := range t.menus {
 		dg.DrawText(menu.text, menu.rect, obj.White)
 	}
+
+	// move cursor
+	x, y := t.menus[t.cursor.index].rect.Pos(4)
+	t.cursor.b = complex(x, y)
+
+	ct := t.timers["cursor"]
+	if ct.State == "moving" {
+		then := ct.Do(0, 10, func(tm sio.Timer) {
+			dist := (t.cursor.b - t.cursor.a) * complex(ease.OutQuad(tm.Ratio()), 0)
+			t.cursor.pos = t.cursor.a + dist
+		})
+		then.Once(func() {
+			t.cursor.pos = t.cursor.b
+			ct.Switch("")
+		})
+	}
+
+	if input.OnUp() && t.cursor.index > 0 {
+		t.cursor.index--
+		t.cursor.a = t.cursor.pos
+		ct.Switch("moving")
+	}
+	if input.OnDown() && t.cursor.index < 1 {
+		t.cursor.index++
+		t.cursor.a = t.cursor.pos
+		ct.Switch("moving")
+	}
+
+	// draw cursor
+	t.cursor.box.Move(sio.Ctof(t.cursor.pos))
+	dg.DrawText("--", t.cursor.box, obj.White)
 }
