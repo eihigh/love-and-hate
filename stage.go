@@ -79,11 +79,14 @@ func (s *stage) update() action.Action {
 	case "failed":
 		s.updateFailed()
 		if st.Count > 120 {
-			return action.FallbackToTitle
+			return action.StageFailed
 		}
 
 	case "cleared":
 		s.updateCleared()
+		if st.Count > 60 {
+			return action.StageClear
+		}
 
 	default:
 		s.updateMain()

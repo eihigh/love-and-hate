@@ -86,28 +86,28 @@ func (g *game) update() error {
 
 	et := g.timers["ending"]
 	if et.State != "" {
+		g.updateEnding()
 
-		alpha := 0.0
-		switch et.State {
-		case "main":
-			alpha = 1
-
-		case "in":
-			then := et.Do(0, 120, func(t sio.Timer) {
+		alpha := 1.0
+		then := et.Do(0, 30, func(t sio.Timer) {
+			switch t.State {
+			case "in":
 				alpha = t.Ratio()
-			})
-			then.Once(func() {
-				et.Switch("main")
-			})
-
-		case "out":
-			then := et.Do(0, 180, func(t sio.Timer) {
+			case "out":
 				alpha = 1 - t.Ratio()
-			})
-			then.Once(func() {
+			}
+		})
+
+		then.Once(func() {
+			switch et.State {
+			case "in":
+				alpha = 1
+				et.Switch("main")
+			case "out":
+				alpha = 0
 				et.Switch("")
-			})
-		}
+			}
+		})
 
 		dg.DrawImage(g.ending.layer, draw.Paint(1, 1, 1, alpha))
 	}
@@ -134,11 +134,35 @@ func (g *game) updatePlay() {
 	a := g.play.update()
 
 	if g.timers["play"].State == "main" {
+
 		switch a {
+
 		case action.FallbackToTitle:
 			g.title = newTitle()
-
 			g.timers["play"].Switch("")
+			g.timers["title"].Switch("in")
+
+		case action.GameClear:
+			g.ending = newEnding()
+			g.timers["play"].Switch("")
+			g.timers["ending"].Switch("in")
+
+		case action.GameOver:
+			g.title = newTitle()
+			g.timers["play"].Switch("")
+			g.timers["title"].Switch("in")
+
+		}
+	}
+}
+
+func (g *game) updateEnding() {
+	a := g.ending.update()
+
+	if g.timers["ending"].State == "main" {
+		if a == action.EndingFinished {
+			g.title = newTitle()
+			g.timers["ending"].Switch("out")
 			g.timers["title"].Switch("in")
 		}
 	}

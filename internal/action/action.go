@@ -13,10 +13,17 @@ const (
 	// from play
 	PlayContinue
 	BackToTitle
+	GameClear
+	GameOver
 
 	// from stage
 	FallbackToTitle
+	StageClear
+	StageFailed
 
 	// from phases
 	PhaseFinished
+
+	// from ending
+	EndingFinished
 )
