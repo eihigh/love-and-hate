@@ -28,8 +28,9 @@ func newPhase01() *phase01 {
 		cyclones: obj.Movers{},
 	}
 	p1.Love = obj.Emo{
-		Target: 2,
-		Shown:  10,
+		Target:     2,
+		Shown:      10,
+		IsPositive: true,
 	}
 	p1.Hate = obj.Emo{
 		Target: 6,
@@ -46,7 +47,7 @@ func (p *phase01) Update(o *obj.Objects) action.Action {
 	if pt.Count < 30 {
 		return action.NoAction
 	}
-	if pt.Count > 60 {
+	if pt.Count > 300 {
 		return action.PhaseFinished
 	}
 

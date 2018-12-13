@@ -22,7 +22,6 @@ var (
 )
 
 type stage struct {
-	objs       *obj.Objects
 	timers     sio.TimersMap
 	phases     []obj.Phase
 	phaseIndex int
@@ -45,7 +44,6 @@ func newStage(level int) *stage {
 	hb := bars.Clone(6, 6).Scale(0.5, 1)
 
 	return &stage{
-		objs: &obj.Objects{},
 		timers: sio.TimersMap{
 			"ui":    &sio.Timer{},
 			"stage": &sio.Timer{},
@@ -78,13 +76,13 @@ func (s *stage) update() action.Action {
 
 	case "failed":
 		s.updateFailed()
-		if st.Count > 120 {
+		if st.Count > 240 {
 			return action.StageFailed
 		}
 
 	case "cleared":
 		s.updateCleared()
-		if st.Count > 60 {
+		if st.Count > 120 && input.JustDecided() {
 			return action.StageClear
 		}
 
@@ -96,7 +94,7 @@ func (s *stage) update() action.Action {
 
 func (s *stage) updateMain() {
 	ph := s.currentPhase()
-	act := ph.Update(s.objs)
+	act := ph.Update(o)
 	s.updateObjects()
 	ph.Draw()
 	s.updateUI()
@@ -108,25 +106,27 @@ func (s *stage) updateMain() {
 }
 
 func (s *stage) updateFailed() {
-	s.updateObjects()
-	s.updateUI()
-	// s.drawFailed()
 
-	dg := &draw.Group{}
-	dg.DrawText("stage failure", s.resultText, obj.White)
+	s.timers["stage"].Do(0, 180, func(sio.Timer) {
+		dg := &draw.Group{}
+		dg.DrawText("LOST", s.resultText, obj.White)
+		s.updateObjects()
+		s.updateUI()
+	})
 }
 
 func (s *stage) updateCleared() {
 	s.updateObjects()
 	s.updateUI()
-	// s.drawCleared()
+
+	dg := &draw.Group{}
+	dg.DrawText("STAGE CLEARED", s.resultText, obj.White)
 }
 
 func (s *stage) succPhase() {
 	ut := s.timers["ui"]
 	ut.Switch("result")
 
-	o := s.objs
 	// vanish all objects
 	for _, sym := range o.Symbols {
 		o.AppendEffect(obj.EffectRippleOnce, sym.Base().Pos)
@@ -161,14 +161,8 @@ func (s *stage) succPhase() {
 
 func (s *stage) updateObjects() {
 
-	o := s.objs
 	st := s.timers["stage"]
 	dg := &draw.Group{}
-
-	// play sound
-	// if c.LastLenSymbols != len(c.Symbols) {
-	// 	audio.PlaySe("paper")
-	// }
 
 	// update & draw symbols
 	for _, sym := range o.Symbols {
@@ -191,7 +185,6 @@ func (s *stage) updateObjects() {
 	}
 
 	// draw & update player
-	s.updatePlayer()
 	yellow := 0.8 * sio.UWave(st.RatioTo(20))
 	dg.DrawSprite(
 		images.Images["player"],
@@ -217,61 +210,6 @@ func (s *stage) updateObjects() {
 	o.Effects = next
 }
 
-func (s *stage) updatePlayer() {
-
-	o := s.objs
-	r, l, u, d := input.OnRight(), input.OnLeft(), input.OnUp(), input.OnDown()
-	if r && l {
-		r, l = false, false
-	}
-	if u && d {
-		u, d = false, false
-	}
-
-	// 1直角=1.0
-	a := 0.0
-	spd := 2.0 + 0i
-	if r {
-		if u {
-			a = -0.5
-		} else if d {
-			a = 0.5
-		} else {
-			a = 0.0
-		}
-	} else if l {
-		if u {
-			a = -1.5
-		} else if d {
-			a = 1.5
-		} else {
-			a = 2.0
-		}
-	} else if u {
-		a = -1.0
-	} else if d {
-		a = 1.0
-	} else {
-		spd = 0
-	}
-
-	pos := o.Player.Pos + sio.UnitVector(a)*spd
-	x, y := real(pos), imag(pos)
-	if x < env.View.X {
-		x = env.View.X
-	}
-	if y < env.View.Y {
-		y = env.View.Y
-	}
-	if x > env.View.X+env.View.W {
-		x = env.View.X + env.View.W
-	}
-	if y > env.View.Y+env.View.H {
-		y = env.View.Y + env.View.H
-	}
-	o.Player.Pos = complex(x, y)
-}
-
 func (s *stage) updateUI() {
 
 	ut := s.timers["ui"]
@@ -283,7 +221,7 @@ func (s *stage) updateUI() {
 	dg := &draw.Group{}
 	phase := s.currentPhase()
 	pb := phase.Base()
-	pl := &s.objs.Player
+	pl := &o.Player
 
 	// draw bars
 	scale := 1.0
@@ -373,11 +311,10 @@ func (s *stage) updateResultUI() {
 func (s *stage) collision() {
 
 	pb := s.currentPhase().Base()
-	pl := &s.objs.Player
+	pl := &o.Player
 	pl.LastLoves = pl.Loves
 	pl.LastHates = pl.Hates
 
-	o := s.objs
 	for _, sym := range o.Symbols {
 		b := sym.Base()
 		if b.IsDead {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/eihigh/love-and-hate/internal/action"
@@ -22,8 +23,11 @@ type play struct {
 	timers    sio.TimersMap
 	isPausing bool
 	stage     *stage
-	level     int
 	message   *sio.Rect
+	credits   *sio.Rect
+
+	level  int
+	credit int
 }
 
 func newPlay() *play {
@@ -34,8 +38,11 @@ func newPlay() *play {
 		},
 
 		stage:   newStage(level),
-		level:   level,
 		message: env.View.Clone(5, 5).Shift(0, -16),
+		credits: env.View.Clone(2, 2).Shift(0, -8),
+
+		level:  level,
+		credit: 5,
 	}
 }
 
@@ -49,12 +56,14 @@ func (p *play) update() action.Action {
 	if pt.State == "" || pt.State == "main" {
 		then := pt.Do(50, 150, func(t sio.Timer) {
 			dg.DrawText(stageTexts[p.level], p.message, obj.White)
+			dg.DrawText(fmt.Sprintf("CREDIT %d", p.credit), p.credits, obj.White)
+		})
+		then = then.Do(0, 40, func(t sio.Timer) {
+			dg.DrawText(stageTexts[p.level], p.message, color.Alpha{uint8(255 * (1 - t.Ratio()))})
+			dg.DrawText(fmt.Sprintf("CREDIT %d", p.credit), p.credits, color.Alpha{uint8(255 * (1 - t.Ratio()))})
 		})
 		then.Once(func() {
 			pt.Continue("main")
-		})
-		then.Do(0, 40, func(t sio.Timer) {
-			dg.DrawText(stageTexts[p.level], p.message, color.Alpha{uint8(255 * (1 - t.Ratio()))})
 		})
 	}
 
@@ -74,7 +83,12 @@ func (p *play) update() action.Action {
 		}
 
 		if a == action.StageFailed {
-			return action.GameOver
+			p.credit--
+			if p.credit < 0 {
+				return action.GameOver
+			}
+			p.stage = newStage(p.level)
+			pt.Switch("")
 		}
 	}
 

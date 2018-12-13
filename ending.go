@@ -54,7 +54,7 @@ func newEnding() *ending {
 		},
 		layer:  layer,
 		box:    env.View.Clone(8, 8),
-		scroll: 10,
+		scroll: 330,
 	}
 }
 
@@ -64,7 +64,7 @@ func (e *ending) update() action.Action {
 	dg := &draw.Group{}
 	dg.DrawText(endingText, env.View.Clone(8, 8).Shift(0, e.scroll), obj.White)
 
-	if e.timers["ending"].Count > 300 {
+	if e.timers["ending"].Count > 3000 {
 		return action.EndingFinished
 	}
 	return action.NoAction

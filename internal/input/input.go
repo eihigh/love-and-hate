@@ -52,6 +52,17 @@ func OnDecide() bool {
 	return OnKeys(keys)
 }
 
+var lastDecided bool
+
+func JustDecided() bool {
+	if !lastDecided && OnDecide() {
+		lastDecided = true
+		return true
+	}
+	lastDecided = OnDecide()
+	return false
+}
+
 func OnCancel() bool {
 	keys := []ebiten.Key{
 		ebiten.KeyEscape,
