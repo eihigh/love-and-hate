@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/eihigh/love-and-hate/internal/action"
+	"github.com/eihigh/love-and-hate/internal/audio"
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/obj"
@@ -47,6 +48,7 @@ type ending struct {
 
 func newEnding() *ending {
 	layer, _ := ebiten.NewImage(320, 240, ebiten.FilterDefault)
+	audio.PlayBgm("Scent_of_flowers")
 
 	return &ending{
 		timers: sio.TimersMap{

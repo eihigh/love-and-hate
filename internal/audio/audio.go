@@ -16,6 +16,9 @@ var (
 	sePlayers  = map[string]*audio.Player{}
 
 	audioContext *audio.Context
+
+	BgmVolume = 0.4
+	SeVolume  = 0.1
 )
 
 func init() {
@@ -31,6 +34,7 @@ func Load() {
 	// BGMs
 	for _, name := range []string{
 		"Retrospect",
+		"Scent_of_flowers",
 	} {
 		f, err := assets.Assets.Open(fmt.Sprintf("audio/%s.mp3", name))
 		if err != nil {
@@ -80,8 +84,7 @@ func PushBgm(name string, b []byte) {
 		panic(err)
 	}
 
-	src := audio.NewInfiniteLoop(stream, stream.Length())
-	p, err := audio.NewPlayer(audioContext, src)
+	p, err := audio.NewPlayer(audioContext, stream)
 	if err != nil {
 		panic(err)
 	}
@@ -102,6 +105,7 @@ func PauseBgm() {
 
 func PlayBgm(name string) {
 	p := bgmPlayers[name]
+	p.SetVolume(BgmVolume)
 	if err := p.Rewind(); err == nil {
 		p.Play()
 	}
@@ -129,6 +133,7 @@ func SetSeVolume(volume float64) {
 
 func PlaySe(name string) {
 	p := sePlayers[name]
+	p.SetVolume(SeVolume)
 	p.Rewind()
 	p.Play()
 }

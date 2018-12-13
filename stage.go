@@ -8,7 +8,6 @@ import (
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/images"
-	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/love-and-hate/stages/stage01"
 	"github.com/eihigh/sio"
@@ -37,6 +36,9 @@ type stage struct {
 }
 
 func newStage(level int) *stage {
+
+	// play bgm
+	audio.PlayBgm(bgms[level])
 
 	bars := env.View.Clone(8, 8).SetSize(-1, 16).Shift(0, 4)
 	// love
@@ -82,7 +84,7 @@ func (s *stage) update() action.Action {
 
 	case "cleared":
 		s.updateCleared()
-		if st.Count > 120 && input.JustDecided() {
+		if st.Count > 120 && o.IsActioned() {
 			return action.StageClear
 		}
 

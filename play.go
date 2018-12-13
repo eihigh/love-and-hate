@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/eihigh/love-and-hate/internal/action"
+	"github.com/eihigh/love-and-hate/internal/audio"
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/input"
@@ -16,6 +17,11 @@ var (
 	stageTexts = []string{
 		"", // dummy
 		"CASE 01.\n\nオマツリの灯は遠く",
+	}
+
+	bgms = []string{
+		"", // dummy
+		"Retrospect",
 	}
 )
 
@@ -71,6 +77,7 @@ func (p *play) update() action.Action {
 		a := p.updateStage()
 
 		if a == action.StageClear {
+			audio.PauseBgm()
 			p.stage = nil
 			// TODO: stop bgm
 			p.level++
@@ -83,6 +90,7 @@ func (p *play) update() action.Action {
 		}
 
 		if a == action.StageFailed {
+			audio.PauseBgm()
 			p.credit--
 			if p.credit < 0 {
 				return action.GameOver
