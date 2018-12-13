@@ -8,13 +8,14 @@ const (
 	Cancel
 
 	// from title
-	ToStages
-	ToHowTo
-	NewGame
-	HowTo
+	StartPlay
 
 	// from play
 	PlayContinue
+	BackToTitle
+
+	// from stage
+	FallbackToTitle
 
 	// from phases
 	PhaseFinished

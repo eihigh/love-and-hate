@@ -34,6 +34,7 @@ type stage struct {
 	loveIcon, loveBar *sio.Rect
 	hateIcon, hateBar *sio.Rect
 	phaseText         *sio.Rect
+	resultText        *sio.Rect
 }
 
 func newStage(level int) *stage {
@@ -49,12 +50,13 @@ func newStage(level int) *stage {
 			"ui":    &sio.Timer{},
 			"stage": &sio.Timer{},
 		},
-		phases:    phaseLists[level](),
-		loveIcon:  lb.Clone(6, 6).SetSize(16, 16),
-		hateIcon:  hb.Clone(4, 4).SetSize(16, 16),
-		loveBar:   lb.Clone(4, 4).Resize(-16, -10),
-		hateBar:   hb.Clone(6, 6).Resize(-16, -10),
-		phaseText: env.View.Clone(5, 5).Shift(0, -20),
+		phases:     phaseLists[level](),
+		loveIcon:   lb.Clone(6, 6).SetSize(16, 16),
+		hateIcon:   hb.Clone(4, 4).SetSize(16, 16),
+		loveBar:    lb.Clone(4, 4).Resize(-16, -10),
+		hateBar:    hb.Clone(6, 6).Resize(-16, -10),
+		phaseText:  env.View.Clone(5, 5).Shift(0, -20),
+		resultText: env.View.Clone(5, 5).Shift(0, -20),
 	}
 }
 
@@ -73,10 +75,16 @@ func (s *stage) update() action.Action {
 
 	st := s.timers["stage"]
 	switch st.State {
+
 	case "failed":
 		s.updateFailed()
+		if st.Count > 120 {
+			return action.FallbackToTitle
+		}
+
 	case "cleared":
 		s.updateCleared()
+
 	default:
 		s.updateMain()
 	}
@@ -100,6 +108,9 @@ func (s *stage) updateFailed() {
 	s.updateObjects()
 	s.updateUI()
 	// s.drawFailed()
+
+	dg := &draw.Group{}
+	dg.DrawText("stage failure", s.resultText, obj.White)
 }
 
 func (s *stage) updateCleared() {
