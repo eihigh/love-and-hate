@@ -33,7 +33,7 @@ func (e *EffectBase) Draw(dg *draw.Group) {
 func (e *EffectBase) drawRipple(dg *draw.Group) {
 
 	t := sio.Timer{
-		Count: e.Timer.Count % 50,
+		Count: e.Timer.Count % 30,
 	}
 	t.Do(0, 30, func(t sio.Timer) {
 		r := t.Ratio()

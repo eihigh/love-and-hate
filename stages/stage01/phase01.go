@@ -38,7 +38,7 @@ func newPhase01() *phase01 {
 		Target: 3,
 		Shown:  10,
 	}
-	p1.Text = "襲いかかる吐き気に顔をしかめた。\n\"なんで自分だけ？\"って。"
+	p1.Text = "体を起こして、水を飲み干した。\nゆっくりと、時間をかけて。"
 	return p1
 }
 

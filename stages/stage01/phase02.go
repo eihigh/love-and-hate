@@ -28,15 +28,15 @@ func newPhase02() *phase02 {
 	}
 
 	p2.Love = obj.Emo{
-		Target:     2,
+		Target:     4,
 		Shown:      10,
 		IsPositive: true,
 	}
 	p2.Hate = obj.Emo{
-		Target: 2,
+		Target: 3,
 		Shown:  10,
 	}
-	p2.Text = "わたしが愛するのはあなただけ。\nどうかこの愛を受け取って。"
+	p2.Text = "今はもう、立って歩くこともおぼつかず。\nごめんね、何もできずに頼ってばかりで。"
 	return p2
 }
 

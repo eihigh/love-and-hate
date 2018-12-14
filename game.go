@@ -38,6 +38,7 @@ func newGame() *game {
 			},
 			"play":   &sio.Timer{},
 			"ending": &sio.Timer{},
+			"action": &sio.Timer{},
 		},
 
 		title:  newTitle(),
@@ -78,13 +79,24 @@ func (g *game) update() error {
 	dg := &draw.Group{}
 	o.UpdatePlayer()
 
-	if o.Player.Action.State == "on" {
-		e := obj.EffectBase{
-			Type:  obj.EffectRippleOnce,
-			Pos:   o.Player.Pos,
-			Timer: o.Player.Action,
-		}
-		e.Draw(dg)
+	at := g.timers["action"]
+	if input.JustDecided() {
+		at.Switch("on")
+	}
+
+	if at.State == "on" {
+		at.Do(0, 30, func(t sio.Timer) {
+			e := obj.EffectBase{
+				Type:  obj.EffectRippleOnce,
+				Pos:   o.Player.Pos,
+				Timer: o.Player.Action,
+			}
+			e.Draw(dg)
+
+			if t.IsLast() {
+				at.Switch("")
+			}
+		})
 	}
 
 	yellow := 0.8 * sio.UWave(o.Player.Action.RatioTo(20))
