@@ -34,7 +34,7 @@ func Load() {
 	// BGMs
 	for _, name := range []string{
 		"Retrospect",
-		"Scent_of_flowers",
+		//"Scent_of_flowers",
 	} {
 		f, err := assets.Assets.Open(fmt.Sprintf("audio/%s.mp3", name))
 		if err != nil {

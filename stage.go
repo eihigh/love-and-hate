@@ -8,6 +8,7 @@ import (
 	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/images"
+	"github.com/eihigh/love-and-hate/internal/input"
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/love-and-hate/stages/stage01"
 	"github.com/eihigh/sio"
@@ -84,7 +85,7 @@ func (s *stage) update() action.Action {
 
 	case "cleared":
 		s.updateCleared()
-		if st.Count > 120 && o.IsActioned() {
+		if st.Count > 120 && input.JustDecided() {
 			return action.StageClear
 		}
 

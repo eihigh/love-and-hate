@@ -78,8 +78,13 @@ func (g *game) update() error {
 	dg := &draw.Group{}
 	o.UpdatePlayer()
 
-	if o.IsActioned() {
-		o.AppendEffect(obj.EffectRippleOnce, o.Player.Pos)
+	if o.Player.Action.State == "on" {
+		e := obj.EffectBase{
+			Type:  obj.EffectRippleOnce,
+			Pos:   o.Player.Pos,
+			Timer: o.Player.Action,
+		}
+		e.Draw(dg)
 	}
 
 	yellow := 0.8 * sio.UWave(o.Player.Action.RatioTo(20))

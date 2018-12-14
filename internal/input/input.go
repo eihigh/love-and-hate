@@ -2,6 +2,18 @@ package input
 
 import "github.com/hajimehoshi/ebiten"
 
+type strset map[string]struct{}
+
+var (
+	curs  = strset{}
+	lasts = strset{}
+)
+
+func Reset() {
+	lasts = curs
+	curs = strset{}
+}
+
 func OnKeys(keys []ebiten.Key) bool {
 	for _, k := range keys {
 		if ebiten.IsKeyPressed(k) {
@@ -49,17 +61,20 @@ func OnDecide() bool {
 		ebiten.KeyZ,
 		ebiten.KeySpace,
 	}
-	return OnKeys(keys)
-}
-
-var lastDecided bool
-
-func JustDecided() bool {
-	if !lastDecided && OnDecide() {
-		lastDecided = true
+	if on := OnKeys(keys); on {
+		curs["decide"] = struct{}{}
 		return true
 	}
-	lastDecided = OnDecide()
+	return false
+}
+
+func JustDecided() bool {
+	if on := OnDecide(); on {
+		curs["decide"] = struct{}{}
+		if _, last := lasts["decide"]; !last {
+			return true
+		}
+	}
 	return false
 }
 

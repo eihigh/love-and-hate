@@ -25,10 +25,6 @@ func newTitle() *title {
 
 func (t *title) update() action.Action {
 
-	if env.DebugMode {
-		return action.StartPlay
-	}
-
 	t.timer.Update()
 	dg := &draw.Group{}
 
@@ -53,7 +49,7 @@ func (t *title) update() action.Action {
 				alpha = 0
 			}
 		})
-		then.After(60, func(sio.Timer) {
+		then.After(20, func(sio.Timer) {
 			// scan action
 			if input.OnDecide() {
 				t.timer.Switch("out")

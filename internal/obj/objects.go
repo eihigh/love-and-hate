@@ -37,16 +37,11 @@ func (o *Objects) AppendEffect(t EffectType, p complex128) {
 	})
 }
 
-func (o *Objects) IsActioned() bool {
-	return o.Player.Action.State == "on"
-}
-
 func (o *Objects) UpdatePlayer() {
 
-	o.Player.Action.Continue("")
 	o.Player.Action.Update()
 	if input.JustDecided() {
-		o.Player.Action.Continue("on")
+		o.Player.Action.Switch("on")
 	}
 
 	r, l, u, d := input.OnRight(), input.OnLeft(), input.OnUp(), input.OnDown()

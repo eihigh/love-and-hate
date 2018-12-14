@@ -32,8 +32,10 @@ func (e *EffectBase) Draw(dg *draw.Group) {
 
 func (e *EffectBase) drawRipple(dg *draw.Group) {
 
-	t := e.Timer
-	then := t.Do(0, 30, func(t sio.Timer) {
+	t := sio.Timer{
+		Count: e.Timer.Count % 50,
+	}
+	t.Do(0, 30, func(t sio.Timer) {
 		r := t.Ratio()
 		scale := 0.3 + r
 
@@ -43,13 +45,9 @@ func (e *EffectBase) drawRipple(dg *draw.Group) {
 			draw.Shift(sio.Ctof(e.Pos)),
 			draw.Paint(1, 1, 1, 1-r),
 		)
-	})
 
-	then.Once(func() {
-		if e.Type == EffectRippleOnce {
+		if t.IsLast() && e.Type == EffectRippleOnce {
 			e.IsDead = true
-		} else {
-			t.Count = 0
 		}
 	})
 }

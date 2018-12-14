@@ -60,16 +60,21 @@ func (p *play) update() action.Action {
 	pt := p.timers["play"]
 
 	if pt.State == "" || pt.State == "main" {
+		message := stageTexts[p.level]
+		credits := fmt.Sprintf("CREDIT %d", p.credit)
+
 		then := pt.Do(50, 150, func(t sio.Timer) {
-			dg.DrawText(stageTexts[p.level], p.message, obj.White)
-			dg.DrawText(fmt.Sprintf("CREDIT %d", p.credit), p.credits, obj.White)
+			dg.DrawText(message, p.message, obj.White)
+			dg.DrawText(credits, p.credits, obj.White)
 		})
-		then = then.Do(0, 40, func(t sio.Timer) {
-			dg.DrawText(stageTexts[p.level], p.message, color.Alpha{uint8(255 * (1 - t.Ratio()))})
-			dg.DrawText(fmt.Sprintf("CREDIT %d", p.credit), p.credits, color.Alpha{uint8(255 * (1 - t.Ratio()))})
-		})
-		then.Once(func() {
-			pt.Continue("main")
+		then.Do(0, 40, func(t sio.Timer) {
+			clr := color.Alpha{uint8(255 * (1 - t.Ratio()))}
+			dg.DrawText(message, p.message, clr)
+			dg.DrawText(credits, p.credits, clr)
+
+			if t.IsLast() {
+				pt.Continue("main")
+			}
 		})
 	}
 
