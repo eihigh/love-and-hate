@@ -17,8 +17,8 @@ var (
 
 	audioContext *audio.Context
 
-	BgmVolume = 0.4
-	SeVolume  = 0.1
+	BgmVolume = 0.1
+	SeVolume  = 0.08
 )
 
 func init() {

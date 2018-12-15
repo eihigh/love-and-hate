@@ -10,5 +10,5 @@ const (
 
 var (
 	View     = sio.NewRect(7, 0, 0, 320, 240)
-	PlayArea = sio.NewRect(7, 0, 0, 400, 480)
+	PlayArea = View.Clone(5, 5).Scale(2, 3)
 )

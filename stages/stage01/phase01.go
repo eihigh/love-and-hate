@@ -1,10 +1,7 @@
 package stage01
 
 import (
-	"math/rand"
-
 	"github.com/eihigh/love-and-hate/internal/action"
-	"github.com/eihigh/love-and-hate/internal/draw"
 	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/sio"
@@ -18,27 +15,24 @@ type phase01 struct {
 	obj.PhaseBase
 
 	timers sio.TimersMap
-	lovers obj.Movers
 }
 
 func newPhase01() *phase01 {
 	p1 = &phase01{
 		timers: sio.TimersMap{
-			"phase": &sio.Timer{},
+			"phase": sio.NewTimer(""),
 		},
-		lovers: obj.Movers{},
 	}
 
 	p1.Love = obj.Emo{
-		Target:     3,
-		Shown:      10,
-		IsPositive: true,
-	}
-	p1.Hate = obj.Emo{
-		Target: 3,
+		Target: 1,
 		Shown:  10,
 	}
-	p1.Text = "体を起こして、水を飲み干した。\nゆっくりと、時間をかけて。"
+	p1.Hate = obj.Emo{
+		Target: 5,
+		Shown:  10,
+	}
+	p1.Text = "目が覚めて、重たい身体をゆっくり起こす。"
 	return p1
 }
 
@@ -50,44 +44,28 @@ func (p *phase01) Update(o *obj.Objects) action.Action {
 
 	p.timers.UpdateAll()
 	pt := p.timers["phase"]
-	if pt.Count < 30 {
+	if pt.Count < 60 {
 		return action.NoAction
 	}
-	if pt.Count > 60*10 {
+	if pt.Count > 60*16 {
 		return action.PhaseFinished
 	}
-
-	dg := &draw.Group{}
-
-	// update
-	p.lovers.Update()
-
-	for _, l := range p.lovers {
-		e := obj.EffectBase{
-			Type:  obj.EffectRipple,
-			Pos:   l.Pos,
-			Timer: l.Timer,
-		}
-		e.Draw(dg)
-
-		if l.Timer.Count > 80 {
-			// shoot
-			dir := sio.UnitVector(rand.Float64()*4) * 1.3
-			rot := sio.Rot(4)
-			for i := 0; i < 4; i++ {
-				o.Symbols = append(o.Symbols, obj.NewLinear(l.Pos, dir, obj.SymbolLove))
-				dir *= rot
-			}
-			l.IsDead = true
-		}
-	}
+	// dg := &draw.Group{}
 
 	// spawn
-	if pt.Count%140 == 0 {
-		x, y := env.View.Clone(5, 5).Resize(-60, -40).RandPos()
-		p.lovers = append(p.lovers, &obj.Mover{
-			Pos: complex(x, y),
-		})
+	re := env.View.Clone(8, 8).Resize(-120, +40)
+	pos1 := re.CPos(1)
+	pos2 := re.CPos(3)
+
+	if pt.Count%40 == 0 {
+		// spawn from pos1
+		aim := sio.Normalize(o.Player.Pos-pos1) * 2
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos1, aim, obj.SymbolHate))
+	}
+	if pt.Count%40 == 20 {
+		// spawn from pos2
+		aim := sio.Normalize(o.Player.Pos-pos2) * 2
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos2, aim, obj.SymbolHate))
 	}
 
 	return action.NoAction

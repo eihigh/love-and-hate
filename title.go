@@ -25,6 +25,10 @@ func newTitle() *title {
 
 func (t *title) update() action.Action {
 
+	if env.DebugMode {
+		return action.StartPlay
+	}
+
 	t.timer.Update()
 	dg := &draw.Group{}
 

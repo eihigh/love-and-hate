@@ -1,10 +1,8 @@
 package stage01
 
 import (
-	"math/rand"
-
 	"github.com/eihigh/love-and-hate/internal/action"
-	"github.com/eihigh/love-and-hate/internal/draw"
+	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/sio"
 )
@@ -17,26 +15,25 @@ type phase02 struct {
 	obj.PhaseBase
 
 	timers sio.TimersMap
-	lover  obj.Mover
 }
 
 func newPhase02() *phase02 {
 	p2 = &phase02{
 		timers: sio.TimersMap{
-			"phase": &sio.Timer{},
+			"phase": sio.NewTimer(""),
 		},
 	}
 
 	p2.Love = obj.Emo{
-		Target:     4,
+		Target:     3,
 		Shown:      10,
 		IsPositive: true,
 	}
 	p2.Hate = obj.Emo{
-		Target: 3,
+		Target: 5,
 		Shown:  10,
 	}
-	p2.Text = "今はもう、立って歩くこともおぼつかず。\nごめんね、何もできずに頼ってばかりで。"
+	p2.Text = "病気の身体では、水を飲むのさえ一苦労だ。"
 	return p2
 }
 
@@ -46,35 +43,32 @@ func (p *phase02) Update(o *obj.Objects) action.Action {
 
 	p.timers.UpdateAll()
 	pt := p.timers["phase"]
-	if pt.Count < 1 {
+	if pt.Count < 30 {
 		return action.NoAction
 	}
-	if pt.Count > 400 {
+	if pt.Count > 60*17 {
 		return action.PhaseFinished
 	}
-
-	// main process
-	dg := &draw.Group{}
-	p.lover.Update()
-	p.lover.Pos = o.Player.Pos
-
-	// draw ripple
-	e := obj.EffectBase{
-		Type:  obj.EffectRipple,
-		Pos:   p.lover.Pos,
-		Timer: *pt,
-	}
-	e.Draw(dg)
+	// dg := &draw.Group{}
 
 	// spawn
-	if pt.Count%80 == 0 {
-		dir := sio.UnitVector(rand.Float64())
-		rot := sio.Rot(9)
-		for i := 0; i < 9; i++ {
-			pos := p.lover.Pos + dir*10
-			o.Symbols = append(o.Symbols, obj.NewLinear(pos, dir*1.3, obj.SymbolLove))
-			dir *= rot
-		}
+	re := env.View.Clone(8, 8).Resize(-120, +40)
+	var pos1, pos2 complex128
+
+	if pt.Count%60 == 0 {
+		pos1 = re.CPos(1)
+		pos2 = re.CPos(3)
+	}
+	if pt.Count%60 == 30 {
+		pos1 = re.CPos(3)
+		pos2 = re.CPos(1)
+	}
+
+	if pt.Count%30 == 0 {
+		aim := sio.Normalize(o.Player.Pos-pos1) * 2
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos1, aim, obj.SymbolLove))
+		aim = sio.Normalize(o.Player.Pos-pos2) * 2
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos2, aim, obj.SymbolHate))
 	}
 
 	return action.NoAction

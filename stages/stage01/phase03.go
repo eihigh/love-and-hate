@@ -28,14 +28,14 @@ func newPhase03() *phase03 {
 		grv: complex(0, -0.02),
 	}
 	p3.Love = obj.Emo{
-		Target: 2,
+		Target: 5,
 		Shown:  10,
 	}
 	p3.Hate = obj.Emo{
-		Target: 6,
+		Target: 5,
 		Shown:  10,
 	}
-	p3.Text = "襲いかかる吐き気に顔をしかめた。\n二度と顔を見せるな。気色悪い。"
+	p3.Text = "ごめんね、何もできずに頼ってばかりで。"
 
 	audio.PlayBgm("Retrospect")
 	return p3
@@ -49,7 +49,7 @@ func (p *phase03) Update(o *obj.Objects) action.Action {
 	if pt.Count < 5 {
 		return action.NoAction
 	}
-	if pt.Count > 800 {
+	if pt.Count > 60*18 {
 		return action.PhaseFinished
 	}
 
@@ -57,7 +57,7 @@ func (p *phase03) Update(o *obj.Objects) action.Action {
 	// dg := &draw.Group{}
 
 	// spawn
-	if pt.Count%2 == 0 {
+	if pt.Count%6 == 0 {
 
 		orig := 80 + 280i
 		t := *pt

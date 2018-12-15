@@ -28,6 +28,10 @@ type Objects struct {
 	}
 }
 
+func (o *Objects) Spawn(s Symbol) {
+	o.Symbols = append(o.Symbols, s)
+}
+
 func (o *Objects) AppendEffect(t EffectType, p complex128) {
 	o.Effects = append(o.Effects, &effectObj{
 		EffectBase: EffectBase{
