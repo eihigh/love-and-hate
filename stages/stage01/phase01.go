@@ -25,7 +25,7 @@ func newPhase01() *phase01 {
 	}
 
 	p1.Love = obj.Emo{
-		Target: 1,
+		Target: 5,
 		Shown:  10,
 	}
 	p1.Hate = obj.Emo{
@@ -57,15 +57,20 @@ func (p *phase01) Update(o *obj.Objects) action.Action {
 	pos1 := re.CPos(1)
 	pos2 := re.CPos(3)
 
-	if pt.Count%40 == 0 {
+	rot := sio.Rot(20)
+	if pt.Count%120 == 0 {
 		// spawn from pos1
-		aim := sio.Normalize(o.Player.Pos-pos1) * 2
+		aim := sio.Normalize(o.Player.Pos - pos1)
 		o.Symbols = append(o.Symbols, obj.NewLinear(pos1, aim, obj.SymbolHate))
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos1, aim*rot, obj.SymbolHate))
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos1, aim/rot, obj.SymbolHate))
 	}
-	if pt.Count%40 == 20 {
+	if pt.Count%120 == 60 {
 		// spawn from pos2
-		aim := sio.Normalize(o.Player.Pos-pos2) * 2
+		aim := sio.Normalize(o.Player.Pos - pos2)
 		o.Symbols = append(o.Symbols, obj.NewLinear(pos2, aim, obj.SymbolHate))
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos2, aim*rot, obj.SymbolHate))
+		o.Symbols = append(o.Symbols, obj.NewLinear(pos2, aim/rot, obj.SymbolHate))
 	}
 
 	return action.NoAction

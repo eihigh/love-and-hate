@@ -29,7 +29,7 @@ func newGame() *game {
 	images.Load()
 
 	o = &obj.Objects{}
-	o.Player.Pos = complex(160, 120)
+	o.Player.Pos = complex(160, 180)
 
 	return &game{
 		timers: sio.TimersMap{

@@ -41,6 +41,10 @@ func (o *Objects) AppendEffect(t EffectType, p complex128) {
 	})
 }
 
+func (o *Objects) AimFrom(pos complex128) complex128 {
+	return sio.Normalize(o.Player.Pos - pos)
+}
+
 func (o *Objects) UpdatePlayer() {
 
 	o.Player.Action.Update()

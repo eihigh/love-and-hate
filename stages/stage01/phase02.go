@@ -52,23 +52,23 @@ func (p *phase02) Update(o *obj.Objects) action.Action {
 	// dg := &draw.Group{}
 
 	// spawn
-	re := env.View.Clone(8, 8).Resize(-120, +40)
-	var pos1, pos2 complex128
+	re := env.View.Clone(8, 8).Resize(-120, +20)
+	var pos complex128
+	if pt.Count%120 == 0 {
+		pos = re.CPos(1)
+	}
+	if pt.Count%120 == 60 {
+		pos = re.CPos(3)
+	}
 
 	if pt.Count%60 == 0 {
-		pos1 = re.CPos(1)
-		pos2 = re.CPos(3)
-	}
-	if pt.Count%60 == 30 {
-		pos1 = re.CPos(3)
-		pos2 = re.CPos(1)
-	}
-
-	if pt.Count%30 == 0 {
-		aim := sio.Normalize(o.Player.Pos-pos1) * 2
-		o.Symbols = append(o.Symbols, obj.NewLinear(pos1, aim, obj.SymbolLove))
-		aim = sio.Normalize(o.Player.Pos-pos2) * 2
-		o.Symbols = append(o.Symbols, obj.NewLinear(pos2, aim, obj.SymbolHate))
+		dir := o.AimFrom(pos) * 1.2
+		rot := sio.Rot(22)
+		o.Spawn(obj.NewLinear(pos, dir/rot/rot, obj.SymbolHate))
+		o.Spawn(obj.NewLinear(pos, dir/rot, obj.SymbolLove))
+		o.Spawn(obj.NewLinear(pos, dir, obj.SymbolHate))
+		o.Spawn(obj.NewLinear(pos, dir*rot, obj.SymbolLove))
+		o.Spawn(obj.NewLinear(pos, dir*rot*rot, obj.SymbolHate))
 	}
 
 	return action.NoAction
