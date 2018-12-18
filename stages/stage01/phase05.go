@@ -1,8 +1,11 @@
 package stage01
 
 import (
+	"math/rand"
+
 	"github.com/eihigh/love-and-hate/internal/action"
 	"github.com/eihigh/love-and-hate/internal/draw"
+	"github.com/eihigh/love-and-hate/internal/env"
 	"github.com/eihigh/love-and-hate/internal/obj"
 	"github.com/eihigh/sio"
 )
@@ -65,17 +68,32 @@ func (p *phase05) Update(o *obj.Objects) action.Action {
 	p.lights.Update()
 
 	// spawn
-	pt.Loop(30, func(t sio.Timer) {
-		t.Do(0, 20, func(t sio.Timer) {
-			if t.Count%6 == 0 {
-				x := float64(t.Count) / 30 * 16
-				for i := 0; i < 8; i++ {
-					pos := complex(float64(i)*40+x, 240)
-					o.Spawn(obj.NewLinear(pos, complex(0.2, -1.5), obj.SymbolLove))
+	if pt.Count%40 == 0 {
+		re := env.View.Clone(2, 2).Scale(1, 0.1)
+		x, y := re.RandPos()
+
+		p.lights = append(p.lights, &obj.Mover{
+			Pos: complex(x, y),
+			Dir: sio.UnitVector(rand.Float64()),
+		})
+	}
+
+	for _, l := range p.lights {
+		l.Timer.Loop(40, func(t sio.Timer) {
+			if t.Count < 20 && t.Count%4 == 0 {
+				rot := sio.Rot(7)
+				dir := l.Dir
+				for i := 0; i < 7; i++ {
+					o.Spawn(obj.NewLinear(l.Pos, dir, obj.SymbolLove))
+					dir *= rot
 				}
 			}
 		})
-	})
+
+		if l.Timer.Count > 200 {
+			l.IsDead = true
+		}
+	}
 
 	return action.NoAction
 }
